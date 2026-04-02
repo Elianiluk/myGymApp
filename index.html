@@ -3,39 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GymFlow - תוכנית האימונים שלי</title>
-  <meta name="theme-color" content="#dd6b20">
-  <meta name="description" content="אפליקציית חדר כושר בעברית לניהול תוכנית אימונים, תרגילים ומשקלים.">
+  <title>GymFlow Elite</title>
+  <meta name="theme-color" content="#ef7d33">
+  <meta name="description" content="אפליקציית חדר כושר עשירה בעברית עם תוכנית אימונים, ספריית תרגילים, תמונות וקישורי יוטיוב.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <header class="top-nav">
+    <div class="top-nav-inner">
+      <div>
+        <p class="eyebrow">GymFlow Elite</p>
+        <strong>ניהול אימונים ותזונה</strong>
+      </div>
+      <div class="view-switch">
+        <button id="showWorkoutViewBtn" class="ghost-btn view-switch-btn" type="button">אימונים</button>
+        <button id="showNutritionViewBtn" class="ghost-btn view-switch-btn" type="button">תזונה</button>
+      </div>
+    </div>
+  </header>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">
-        <p class="eyebrow">GymFlow</p>
-        <h1>תוכנית הכושר שלך</h1>
-        <p class="subtitle">בונה לעצמך אימונים, משנה תרגילים, ומעדכן משקל בכל אימון במקום אחד.</p>
-      </div>
-
+      <section class="brand-card">
+        <p class="eyebrow">GymFlow Elite</p>
+        <h1>בונים תוכנית כמו מקצוענים</h1>
+        <p class="subtitle">אימונים, תרגילים, משקלים, מדיה, היסטוריה וטאץ' הרבה יותר מושקע.</p>
+      </section>
       <section class="panel">
         <label class="label" for="planName">שם התוכנית</label>
-        <input id="planName" class="text-input" type="text" placeholder="למשל: חיטוב קיץ">
+        <input id="planName" class="text-input" type="text" placeholder="למשל: מסה חכמה 2026">
         <div class="stats-grid">
-          <div class="stat-card">
-            <span id="workoutCount">0</span>
-            <small>אימונים בתוכנית</small>
-          </div>
-          <div class="stat-card">
-            <span id="exerciseCount">0</span>
-            <small>תרגילים סה"כ</small>
-          </div>
+          <article class="stat-card"><span id="workoutCount">0</span><small>אימונים</small></article>
+          <article class="stat-card"><span id="exerciseCount">0</span><small>תרגילים</small></article>
+          <article class="stat-card"><span id="sessionCount">0</span><small>ביצועים שמורים</small></article>
         </div>
       </section>
-
       <section class="panel">
         <div class="panel-heading">
           <h2>אימונים</h2>
@@ -43,58 +50,61 @@
         </div>
         <div id="workoutTabs" class="workout-tabs"></div>
       </section>
-
       <section class="panel">
         <div class="panel-heading">
-          <h2>תבניות מהירות</h2>
+          <h2>ספריית תרגילים</h2>
+          <span id="libraryCount" class="summary-chip">0 תרגילים</span>
         </div>
-        <div class="template-list">
-          <button class="template-btn" data-template="push" type="button">Push Day</button>
-          <button class="template-btn" data-template="pull" type="button">Pull Day</button>
-          <button class="template-btn" data-template="legs" type="button">Leg Day</button>
-        </div>
+        <label class="label" for="librarySearch">חיפוש תרגיל</label>
+        <input id="librarySearch" class="text-input" type="text" placeholder="חפש לפי שם, שריר או ציוד">
+        <div id="libraryList" class="library-list"></div>
       </section>
     </aside>
-
-    <main class="main-content">
+    <main id="workoutView" class="main-content">
       <section class="hero-card">
-        <div>
-          <p class="eyebrow">מעקב חכם</p>
+        <div class="hero-copy">
+          <p class="eyebrow">היום בתוכנית</p>
           <h2 id="activeWorkoutTitle">בחר אימון כדי להתחיל</h2>
-          <p id="activeWorkoutMeta" class="hero-meta">אפשר להוסיף תרגילים, לעדכן משקלים, ולשמור היסטוריית אימון לכל תרגיל.</p>
+          <p id="activeWorkoutMeta" class="hero-meta">כאן תוכל לערוך את האימון, לשנות תרגילים, ולהוסיף תמונה וקישור וידאו לכל תרגיל.</p>
+          <div class="hero-badges">
+            <span class="hero-badge">שומר אוטומטית</span>
+            <span class="hero-badge">מותאם למובייל</span>
+            <span class="hero-badge">תמונות + YouTube</span>
+          </div>
         </div>
         <div class="hero-actions">
-          <button id="addExerciseBtn" class="primary-btn" type="button">+ הוסף תרגיל</button>
-          <button id="saveWorkoutBtn" class="ghost-btn" type="button">שמור אימון</button>
+          <button id="addExerciseBtn" class="primary-btn" type="button">+ הוסף תרגיל ידני</button>
+          <button id="saveWorkoutBtn" class="ghost-btn" type="button">שמור עכשיו</button>
         </div>
       </section>
-
       <section id="emptyState" class="empty-state">
-        <h3>אין עדיין אימונים בתוכנית</h3>
-        <p>לחץ על "אימון חדש" כדי ליצור את האימון הראשון שלך.</p>
+        <div class="empty-icon">🏋️</div>
+        <h3>אין עדיין אימון פעיל</h3>
+        <p>צור אימון חדש או הוסף אחד מהתרגילים שבספרייה כדי להתחיל לבנות את התוכנית שלך.</p>
       </section>
-
       <section id="workoutEditor" class="workout-editor hidden">
         <div class="editor-grid">
-          <article class="editor-panel">
-            <div class="panel-heading">
-              <h3>פרטי האימון</h3>
-            </div>
+          <article class="editor-panel details-panel">
+            <div class="panel-heading"><h3>פרטי האימון</h3></div>
             <label class="label" for="workoutName">שם האימון</label>
-            <input id="workoutName" class="text-input" type="text" placeholder="למשל: חזה וכתפיים">
-
+            <input id="workoutName" class="text-input" type="text" placeholder="למשל: חזה ויד אחורית">
             <label class="label" for="workoutFocus">מיקוד</label>
-            <input id="workoutFocus" class="text-input" type="text" placeholder="למשל: Push / עליון / כוח">
-
+            <input id="workoutFocus" class="text-input" type="text" placeholder="למשל: Push / כוח / היפרטרופיה">
+            <label class="label" for="workoutGoal">מטרה</label>
+            <input id="workoutGoal" class="text-input" type="text" placeholder="למשל: עלייה במשקלים">
+            <label class="label" for="workoutDuration">משך אימון בדקות</label>
+            <input id="workoutDuration" class="text-input" type="number" min="10" step="5" placeholder="60">
             <label class="label" for="workoutNotes">הערות</label>
-            <textarea id="workoutNotes" class="textarea-input" rows="4" placeholder="דגשים לאימון, חימום, מנוחות..."></textarea>
-
+            <textarea id="workoutNotes" class="textarea-input" rows="5" placeholder="חימום, דגשים, מנוחות בין סטים..."></textarea>
+            <div class="detail-chips" id="detailChips"></div>
             <button id="deleteWorkoutBtn" class="danger-btn" type="button">מחק אימון</button>
           </article>
-
           <article class="editor-panel exercises-panel">
-            <div class="panel-heading">
-              <h3>תרגילים באימון</h3>
+            <div class="panel-heading panel-heading-tight">
+              <div>
+                <h3>תרגילים באימון</h3>
+                <p class="section-subtitle">לכל תרגיל אפשר לשמור תמונה, ציוד, רמת קושי וקישור ליוטיוב.</p>
+              </div>
               <span id="exerciseSummary" class="summary-chip">0 תרגילים</span>
             </div>
             <div id="exerciseList" class="exercise-list"></div>
@@ -102,71 +112,128 @@
         </div>
       </section>
     </main>
+    <aside id="nutritionView" class="nutrition-sidebar hidden">
+      <section class="nutrition-board side-board">
+        <div class="panel-heading panel-heading-tight">
+          <div>
+            <p class="eyebrow">מעקב תזונה</p>
+            <h2>קלוריות וחלבון</h2>
+            <p class="section-subtitle">פאנל נפרד לתזונה עם לוח שנה ורשימת אוכל יומית.</p>
+          </div>
+        </div>
+        <div class="calendar-nav">
+          <button id="prevMonthBtn" class="ghost-btn" type="button">חודש קודם</button>
+          <span id="calendarMonthLabel" class="summary-chip">-</span>
+          <button id="nextMonthBtn" class="ghost-btn" type="button">חודש הבא</button>
+        </div>
+        <div class="calendar-panel">
+          <div class="calendar-weekdays">
+            <span>א'</span>
+            <span>ב'</span>
+            <span>ג'</span>
+            <span>ד'</span>
+            <span>ה'</span>
+            <span>ו'</span>
+            <span>ש'</span>
+          </div>
+          <div id="calendarDays" class="calendar-days"></div>
+        </div>
+        <article class="nutrition-panel">
+          <div class="panel-heading panel-heading-tight">
+            <div>
+              <h3 id="nutritionSelectedDate">מעקב יומי</h3>
+              <p class="section-subtitle">מוסיפים פריטי אוכל והסיכום מחושב לבד.</p>
+            </div>
+            <span id="nutritionStatus" class="summary-chip">0 קק"ל</span>
+          </div>
+          <div class="nutrition-stats">
+            <div class="stat-card"><span id="dailyCaloriesValue">0</span><small>קלוריות</small></div>
+            <div class="stat-card"><span id="dailyProteinValue">0</span><small>חלבון</small></div>
+          </div>
+          <div class="food-entry-grid">
+            <label class="wide-field">
+              <span class="label">מה אכלת</span>
+              <input id="foodName" class="text-input" type="text" placeholder="למשל: חזה עוף, אורז, יוגורט">
+            </label>
+            <label>
+              <span class="label">כמות / גרם</span>
+              <input id="foodAmount" class="text-input" type="text" placeholder="למשל: 150 גרם">
+            </label>
+            <label>
+              <span class="label">קלוריות</span>
+              <input id="foodCalories" class="text-input" type="number" min="0" step="1" placeholder="220">
+            </label>
+            <label>
+              <span class="label">חלבון (גרם)</span>
+              <input id="foodProtein" class="text-input" type="number" min="0" step="1" placeholder="30">
+            </label>
+          </div>
+          <div class="nutrition-actions">
+            <button id="addFoodBtn" class="primary-btn" type="button">הוסף אוכל</button>
+            <button id="clearNutritionBtn" class="danger-btn" type="button">נקה יום</button>
+          </div>
+          <div id="foodList" class="food-list"></div>
+          <label class="label" for="dailyNutritionNotes">הערות ליום</label>
+          <textarea id="dailyNutritionNotes" class="textarea-input" rows="4" placeholder="רעב, תחושת שובע, שתייה, חריגה מהתפריט..."></textarea>
+          <div class="nutrition-actions">
+            <button id="saveNutritionBtn" class="ghost-btn" type="button">שמור הערות ליום</button>
+          </div>
+        </article>
+      </section>
+    </aside>
   </div>
-
   <template id="exerciseTemplate">
     <article class="exercise-card">
-      <div class="exercise-header">
-        <h4 class="exercise-index"></h4>
-        <button class="icon-btn delete-exercise-btn" type="button">מחק</button>
-      </div>
-
-      <div class="exercise-grid">
-        <label>
-          <span class="label">סוג תרגיל</span>
-          <input class="text-input exercise-name" type="text" placeholder="למשל: בנץ' פרס">
-        </label>
-
-        <label>
-          <span class="label">קבוצת שריר</span>
-          <input class="text-input exercise-group" type="text" placeholder="למשל: חזה">
-        </label>
-
-        <label>
-          <span class="label">סטים</span>
-          <input class="text-input exercise-sets" type="number" min="1" placeholder="4">
-        </label>
-
-        <label>
-          <span class="label">חזרות</span>
-          <input class="text-input exercise-reps" type="text" placeholder="8-10">
-        </label>
-
-        <label>
-          <span class="label">משקל נוכחי (ק&quot;ג)</span>
-          <input class="text-input exercise-weight" type="number" min="0" step="0.5" placeholder="60">
-        </label>
-
-        <label>
-          <span class="label">הערות לתרגיל</span>
-          <input class="text-input exercise-notes" type="text" placeholder="למשל: עצירה של שנייה למטה">
-        </label>
-      </div>
-
-      <div class="session-box">
-        <div class="session-box-header">
-          <strong>עדכון אימון אחרון</strong>
-          <button class="secondary-btn log-session-btn" type="button">שמור ביצוע</button>
+      <div class="exercise-media">
+        <img class="exercise-image" alt="תמונה של תרגיל">
+        <div class="exercise-overlay">
+          <div class="overlay-top">
+            <span class="exercise-group-pill"></span>
+            <button class="icon-btn delete-exercise-btn" type="button">מחק</button>
+          </div>
+          <div class="overlay-bottom">
+            <h4 class="exercise-title"></h4>
+            <p class="exercise-subtitle"></p>
+          </div>
         </div>
-        <div class="session-grid">
-          <label>
-            <span class="label">משקל שבוצע</span>
-            <input class="text-input session-weight" type="number" min="0" step="0.5" placeholder="משקל בפועל">
-          </label>
-          <label>
-            <span class="label">חזרות שבוצעו</span>
-            <input class="text-input session-reps" type="text" placeholder="למשל: 10,9,8">
-          </label>
-          <label>
-            <span class="label">הערות מהאימון</span>
-            <input class="text-input session-notes" type="text" placeholder="איך הרגיש?">
-          </label>
+      </div>
+      <div class="exercise-body">
+        <div class="exercise-grid">
+          <label><span class="label">שם התרגיל</span><input class="text-input exercise-name" type="text" placeholder="למשל: בנץ' פרס"></label>
+          <label><span class="label">קבוצת שריר</span><input class="text-input exercise-group" type="text" placeholder="למשל: חזה"></label>
+          <label><span class="label">ציוד</span><input class="text-input exercise-equipment" type="text" placeholder="למשל: מוט, מכונה, דאמבלים"></label>
+          <label><span class="label">רמת קושי</span><select class="text-input exercise-difficulty"><option value="מתחיל">מתחיל</option><option value="בינוני">בינוני</option><option value="מתקדם">מתקדם</option></select></label>
+          <label><span class="label">סטים</span><input class="text-input exercise-sets" type="number" min="1" placeholder="4"></label>
+          <label><span class="label">חזרות</span><input class="text-input exercise-reps" type="text" placeholder="8-10"></label>
+          <label><span class="label">משקל יעד (ק&quot;ג)</span><input class="text-input exercise-weight" type="number" min="0" step="0.5" placeholder="60"></label>
+          <label><span class="label">מנוחה בשניות</span><input class="text-input exercise-rest" type="number" min="0" step="15" placeholder="90"></label>
+          <label class="wide-field"><span class="label">תמונה לתרגיל</span><input class="text-input exercise-image-url" type="url" placeholder="https://... או להשאיר ריק כדי להשתמש בתמונה אוטומטית"></label>
+          <label class="wide-field"><span class="label">קישור ליוטיוב</span><input class="text-input exercise-video-url" type="url" placeholder="https://www.youtube.com/watch?v=..."></label>
+          <label class="wide-field"><span class="label">הערות לתרגיל</span><textarea class="textarea-input exercise-notes" rows="3" placeholder="טכניקה, דגשים, קצב, נשימה..."></textarea></label>
         </div>
-        <div class="history-pill"></div>
+        <div class="exercise-actions-row">
+          <div class="meta-chips">
+            <span class="meta-chip exercise-sets-chip"></span>
+            <span class="meta-chip exercise-weight-chip"></span>
+            <span class="meta-chip exercise-rest-chip"></span>
+          </div>
+          <a class="video-link hidden" target="_blank" rel="noopener noreferrer">פתח סרטון ביוטיוב</a>
+        </div>
+        <div class="session-box">
+          <div class="session-box-header">
+            <strong>רישום אימון בפועל</strong>
+            <button class="secondary-btn log-session-btn" type="button">שמור ביצוע</button>
+          </div>
+          <div class="session-grid">
+            <label><span class="label">משקל שבוצע</span><input class="text-input session-weight" type="number" min="0" step="0.5" placeholder="משקל בפועל"></label>
+            <label><span class="label">חזרות שבוצעו</span><input class="text-input session-reps" type="text" placeholder="למשל: 10,9,8"></label>
+            <label><span class="label">הערות מהאימון</span><input class="text-input session-notes" type="text" placeholder="איך הלך בפועל?"></label>
+          </div>
+          <div class="history-list"></div>
+        </div>
       </div>
     </article>
   </template>
-
   <script src="app.js"></script>
 </body>
 </html>
