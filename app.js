@@ -121,7 +121,9 @@ function bindEvents() {
   elements.librarySearch.addEventListener("input", renderLibrary);
   elements.closeExercisePickerBtn.addEventListener("click", closeExercisePicker);
   elements.addBlankExerciseBtn.addEventListener("click", () => {
-    ensureActiveWorkout().exercises.push(createExercise({}));
+    const createdExercise = createExercise({});
+    ensureActiveWorkout().exercises.push(createdExercise);
+    state.editingExerciseId = createdExercise.id;
     persist();
     closeExercisePicker();
     render();
@@ -234,7 +236,9 @@ function renderLibrary() {
     button.className = "library-item";
     button.innerHTML = `<strong>${escapeHtml(exercise.name)}</strong><small>${escapeHtml(exercise.group)} · ${escapeHtml(exercise.equipment)} · ${escapeHtml(exercise.difficulty)}</small>`;
     button.addEventListener("click", () => {
-      ensureActiveWorkout().exercises.push(createExercise(exercise));
+      const createdExercise = createExercise(exercise);
+      ensureActiveWorkout().exercises.push(createdExercise);
+      state.editingExerciseId = createdExercise.id;
       persist();
       closeExercisePicker();
       render();
@@ -434,6 +438,8 @@ function renderEditor() {
   workout.exercises.forEach((exercise, index) => {
     const fragment = elements.exerciseTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".exercise-card");
+    const previewButton = fragment.querySelector(".exercise-preview");
+    const body = fragment.querySelector(".exercise-body");
     fragment.querySelector(".exercise-title").textContent = exercise.name || `תרגיל ${index + 1}`;
     fragment.querySelector(".exercise-subtitle").textContent = `${exercise.equipment || "ללא ציוד"} · ${exercise.difficulty || "בינוני"}`;
     fragment.querySelector(".exercise-group-pill").textContent = exercise.group || "תרגיל";
@@ -462,6 +468,20 @@ function renderEditor() {
     fragment.querySelector(".exercise-weight-chip").textContent = `${exercise.weight || "-"} ק"ג יעד`;
     fragment.querySelector(".exercise-rest-chip").textContent = `${exercise.rest || "-"} שנ' מנוחה`;
 
+    const isEditing = state.editingExerciseId === exercise.id;
+    body.classList.toggle("hidden", !isEditing);
+    previewButton.addEventListener("click", () => {
+      state.editingExerciseId = exercise.id;
+      persist();
+      render();
+    });
+
+    fragment.querySelector(".save-exercise-btn").addEventListener("click", () => {
+      state.editingExerciseId = null;
+      persist();
+      render();
+    });
+
     const videoLink = fragment.querySelector(".video-link");
     if (exercise.videoUrl) {
       videoLink.href = exercise.videoUrl;
@@ -485,6 +505,9 @@ function renderEditor() {
 
     fragment.querySelector(".delete-exercise-btn").addEventListener("click", () => {
       workout.exercises = workout.exercises.filter((item) => item.id !== exercise.id);
+      if (state.editingExerciseId === exercise.id) {
+        state.editingExerciseId = null;
+      }
       persist();
       render();
     });
@@ -559,6 +582,7 @@ function loadState() {
       selectedNutritionDate: parsed.selectedNutritionDate || formatIsoDate(today),
       calendarMonth: parsed.calendarMonth || formatMonthKey(today),
       currentView: parsed.currentView || "workouts",
+      editingExerciseId: parsed.editingExerciseId || null,
     };
   } catch {
     return buildDefaultState();
@@ -583,6 +607,7 @@ function buildDefaultState() {
     selectedNutritionDate: formatIsoDate(today),
     calendarMonth: formatMonthKey(today),
     currentView: "workouts",
+    editingExerciseId: null,
   };
 }
 

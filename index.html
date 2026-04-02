@@ -175,20 +175,34 @@
   </div>
   <template id="exerciseTemplate">
     <article class="exercise-card">
-      <div class="exercise-media">
-        <img class="exercise-image" alt="תמונה של תרגיל">
-        <div class="exercise-overlay">
-          <div class="overlay-top">
-            <span class="exercise-group-pill"></span>
-            <button class="icon-btn delete-exercise-btn" type="button">מחק</button>
-          </div>
-          <div class="overlay-bottom">
-            <h4 class="exercise-title"></h4>
-            <p class="exercise-subtitle"></p>
+      <button class="exercise-preview" type="button">
+        <div class="exercise-media">
+          <img class="exercise-image" alt="תמונה של תרגיל">
+          <div class="exercise-overlay">
+            <div class="overlay-top">
+              <span class="exercise-group-pill"></span>
+              <span class="exercise-open-chip">לחץ לעריכה</span>
+            </div>
+            <div class="overlay-bottom">
+              <h4 class="exercise-title"></h4>
+              <p class="exercise-subtitle"></p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="exercise-body">
+        <div class="exercise-preview-summary">
+          <span class="meta-chip exercise-sets-chip"></span>
+          <span class="meta-chip exercise-weight-chip"></span>
+          <span class="meta-chip exercise-rest-chip"></span>
+        </div>
+      </button>
+      <div class="exercise-body hidden">
+        <div class="exercise-editor-top">
+          <strong>עריכת תרגיל</strong>
+          <div class="exercise-editor-actions">
+            <button class="ghost-btn save-exercise-btn" type="button">שמור</button>
+            <button class="icon-btn delete-exercise-btn" type="button">מחק</button>
+          </div>
+        </div>
         <div class="exercise-grid">
           <label><span class="label">שם התרגיל</span><input class="text-input exercise-name" type="text" placeholder="למשל: בנץ' פרס"></label>
           <label><span class="label">קבוצת שריר</span><input class="text-input exercise-group" type="text" placeholder="למשל: חזה"></label>
@@ -203,11 +217,6 @@
           <label class="wide-field"><span class="label">הערות לתרגיל</span><textarea class="textarea-input exercise-notes" rows="3" placeholder="טכניקה, דגשים, קצב, נשימה..."></textarea></label>
         </div>
         <div class="exercise-actions-row">
-          <div class="meta-chips">
-            <span class="meta-chip exercise-sets-chip"></span>
-            <span class="meta-chip exercise-weight-chip"></span>
-            <span class="meta-chip exercise-rest-chip"></span>
-          </div>
           <a class="video-link hidden" target="_blank" rel="noopener noreferrer">פתח סרטון ביוטיוב</a>
         </div>
         <div class="session-box">

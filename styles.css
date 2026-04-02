@@ -599,6 +599,31 @@ a {
   box-shadow: 0 16px 40px rgba(3, 8, 18, 0.34);
 }
 
+.exercise-preview {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.exercise-preview-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 18px 18px;
+}
+
+.exercise-open-chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 .exercise-media {
   position: relative;
   height: 240px;
@@ -652,6 +677,20 @@ a {
 
 .exercise-body {
   padding: 20px;
+  border-top: 1px solid rgba(147, 164, 194, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.exercise-editor-top,
+.exercise-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.exercise-editor-top {
+  margin-bottom: 16px;
 }
 
 .exercise-grid,
@@ -748,6 +787,8 @@ a {
   .panel-heading,
   .session-box-header,
   .exercise-actions-row,
+  .exercise-editor-top,
+  .exercise-editor-actions,
   .overlay-top,
   .calendar-nav,
   .nutrition-actions,
