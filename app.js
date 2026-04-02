@@ -66,6 +66,9 @@ const elements = {
   libraryCount: document.querySelector("#libraryCount"),
   librarySearch: document.querySelector("#librarySearch"),
   libraryList: document.querySelector("#libraryList"),
+  exercisePickerModal: document.querySelector("#exercisePickerModal"),
+  closeExercisePickerBtn: document.querySelector("#closeExercisePickerBtn"),
+  addBlankExerciseBtn: document.querySelector("#addBlankExerciseBtn"),
   activeWorkoutTitle: document.querySelector("#activeWorkoutTitle"),
   activeWorkoutMeta: document.querySelector("#activeWorkoutMeta"),
   showWorkoutViewBtn: document.querySelector("#showWorkoutViewBtn"),
@@ -116,6 +119,13 @@ function bindEvents() {
     renderStats();
   });
   elements.librarySearch.addEventListener("input", renderLibrary);
+  elements.closeExercisePickerBtn.addEventListener("click", closeExercisePicker);
+  elements.addBlankExerciseBtn.addEventListener("click", () => {
+    ensureActiveWorkout().exercises.push(createExercise({}));
+    persist();
+    closeExercisePicker();
+    render();
+  });
   elements.showWorkoutViewBtn.addEventListener("click", () => setCurrentView("workouts"));
   elements.showNutritionViewBtn.addEventListener("click", () => setCurrentView("nutrition"));
   elements.prevMonthBtn.addEventListener("click", () => {
@@ -139,9 +149,8 @@ function bindEvents() {
     render();
   });
   elements.addExerciseBtn.addEventListener("click", () => {
-    ensureActiveWorkout().exercises.push(createExercise({}));
-    persist();
-    render();
+    ensureActiveWorkout();
+    openExercisePicker();
   });
   elements.saveWorkoutBtn.addEventListener("click", () => {
     persist();
@@ -227,10 +236,22 @@ function renderLibrary() {
     button.addEventListener("click", () => {
       ensureActiveWorkout().exercises.push(createExercise(exercise));
       persist();
+      closeExercisePicker();
       render();
     });
     elements.libraryList.appendChild(button);
   });
+}
+
+function openExercisePicker() {
+  elements.exercisePickerModal.classList.remove("hidden");
+  renderLibrary();
+  elements.librarySearch.focus();
+}
+
+function closeExercisePicker() {
+  elements.exercisePickerModal.classList.add("hidden");
+  elements.librarySearch.value = "";
 }
 
 function renderHero() {

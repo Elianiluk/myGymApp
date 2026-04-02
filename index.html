@@ -50,15 +50,6 @@
         </div>
         <div id="workoutTabs" class="workout-tabs"></div>
       </section>
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>ספריית תרגילים</h2>
-          <span id="libraryCount" class="summary-chip">0 תרגילים</span>
-        </div>
-        <label class="label" for="librarySearch">חיפוש תרגיל</label>
-        <input id="librarySearch" class="text-input" type="text" placeholder="חפש לפי שם, שריר או ציוד">
-        <div id="libraryList" class="library-list"></div>
-      </section>
     </aside>
     <main id="workoutView" class="main-content">
       <section class="hero-card">
@@ -234,6 +225,26 @@
       </div>
     </article>
   </template>
+  <div id="exercisePickerModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="panel-heading">
+        <div>
+          <h3>בחר תרגיל מהספרייה</h3>
+          <p class="section-subtitle">הספרייה נפתחת רק כשמוסיפים תרגיל חדש.</p>
+        </div>
+        <button id="closeExercisePickerBtn" class="icon-btn" type="button">סגור</button>
+      </div>
+      <div class="panel-heading">
+        <span id="libraryCount" class="summary-chip">0 תרגילים</span>
+      </div>
+      <label class="label" for="librarySearch">חיפוש תרגיל</label>
+      <input id="librarySearch" class="text-input" type="text" placeholder="חפש לפי שם, שריר או ציוד">
+      <div id="libraryList" class="library-list modal-library-list"></div>
+      <div class="modal-actions">
+        <button id="addBlankExerciseBtn" class="ghost-btn" type="button">צור תרגיל ריק</button>
+      </div>
+    </div>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>
