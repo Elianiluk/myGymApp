@@ -45,6 +45,15 @@
       </section>
       <section class="panel">
         <div class="panel-heading">
+          <h2>פרופיל התחלה</h2>
+        </div>
+        <label class="label" for="profileWeight">משקל נוכחי (ק"ג)</label>
+        <input id="profileWeight" class="text-input" type="number" min="0" step="0.1" placeholder="למשל: 78.5">
+        <label class="label" for="profileHeight">גובה (ס"מ)</label>
+        <input id="profileHeight" class="text-input" type="number" min="0" step="1" placeholder="למשל: 178">
+      </section>
+      <section class="panel">
+        <div class="panel-heading">
           <h2>אימונים</h2>
           <button id="addWorkoutBtn" class="secondary-btn" type="button">+ אימון חדש</button>
         </div>
@@ -141,6 +150,8 @@
             <div class="stat-card"><span id="dailyCaloriesValue">0</span><small>קלוריות</small></div>
             <div class="stat-card"><span id="dailyProteinValue">0</span><small>חלבון</small></div>
           </div>
+          <label class="label" for="morningWeight">משקל בוקר (ק"ג)</label>
+          <input id="morningWeight" class="text-input" type="number" min="0" step="0.1" placeholder="למשל: 77.8">
           <div class="food-entry-grid">
             <label class="wide-field">
               <span class="label">מה אכלת</span>
@@ -218,6 +229,13 @@
         </div>
         <div class="exercise-actions-row">
           <a class="video-link hidden" target="_blank" rel="noopener noreferrer">פתח סרטון ביוטיוב</a>
+        </div>
+        <div class="progress-box">
+          <div class="panel-heading">
+            <strong>התקדמות ושיפור</strong>
+            <span class="progress-summary">אין עדיין נתונים</span>
+          </div>
+          <div class="progress-chart"></div>
         </div>
         <div class="session-box">
           <div class="session-box-header">

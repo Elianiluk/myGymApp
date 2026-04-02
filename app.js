@@ -59,6 +59,8 @@ const state = loadState();
 
 const elements = {
   planName: document.querySelector("#planName"),
+  profileWeight: document.querySelector("#profileWeight"),
+  profileHeight: document.querySelector("#profileHeight"),
   workoutTabs: document.querySelector("#workoutTabs"),
   workoutCount: document.querySelector("#workoutCount"),
   exerciseCount: document.querySelector("#exerciseCount"),
@@ -83,6 +85,7 @@ const elements = {
   nutritionStatus: document.querySelector("#nutritionStatus"),
   dailyCaloriesValue: document.querySelector("#dailyCaloriesValue"),
   dailyProteinValue: document.querySelector("#dailyProteinValue"),
+  morningWeight: document.querySelector("#morningWeight"),
   foodName: document.querySelector("#foodName"),
   foodAmount: document.querySelector("#foodAmount"),
   foodCalories: document.querySelector("#foodCalories"),
@@ -117,6 +120,14 @@ function bindEvents() {
     state.planName = event.target.value;
     persist();
     renderStats();
+  });
+  elements.profileWeight.addEventListener("input", (event) => {
+    state.profile.weight = event.target.value;
+    persist();
+  });
+  elements.profileHeight.addEventListener("input", (event) => {
+    state.profile.height = event.target.value;
+    persist();
   });
   elements.librarySearch.addEventListener("input", renderLibrary);
   elements.closeExercisePickerBtn.addEventListener("click", closeExercisePicker);
@@ -202,6 +213,8 @@ function setCurrentView(view) {
 
 function renderStats() {
   elements.planName.value = state.planName;
+  elements.profileWeight.value = state.profile.weight || "";
+  elements.profileHeight.value = state.profile.height || "";
   elements.workoutCount.textContent = state.workouts.length;
   elements.exerciseCount.textContent = state.workouts.reduce((sum, workout) => sum + workout.exercises.length, 0);
   elements.sessionCount.textContent = state.workouts.reduce((sum, workout) => sum + workout.exercises.reduce((inner, exercise) => inner + exercise.history.length, 0), 0);
@@ -312,7 +325,7 @@ function renderCalendar() {
 
 function renderNutritionForm() {
   const iso = state.selectedNutritionDate;
-  const entry = state.nutrition[iso] || { items: [], notes: "" };
+  const entry = state.nutrition[iso] || { items: [], notes: "", morningWeight: "" };
   const totals = getNutritionTotals(entry);
   elements.nutritionSelectedDate.textContent = `מעקב יומי · ${formatHumanDate(iso)}`;
   elements.nutritionStatus.textContent = `${totals.calories} קק"ל`;
@@ -322,6 +335,7 @@ function renderNutritionForm() {
   elements.foodAmount.value = "";
   elements.foodCalories.value = "";
   elements.foodProtein.value = "";
+  elements.morningWeight.value = entry.morningWeight || "";
   elements.dailyNutritionNotes.value = entry.notes || "";
   renderFoodList(entry.items || []);
 }
@@ -329,6 +343,7 @@ function renderNutritionForm() {
 function saveNutritionForSelectedDate() {
   const entry = ensureNutritionEntry(state.selectedNutritionDate);
   entry.notes = elements.dailyNutritionNotes.value;
+  entry.morningWeight = elements.morningWeight.value;
   persist();
   renderCalendar();
   renderNutritionForm();
@@ -396,10 +411,13 @@ function renderFoodList(items) {
 
 function ensureNutritionEntry(dateKey) {
   if (!state.nutrition[dateKey]) {
-    state.nutrition[dateKey] = { items: [], notes: "" };
+    state.nutrition[dateKey] = { items: [], notes: "", morningWeight: "" };
   }
   if (!Array.isArray(state.nutrition[dateKey].items)) {
     state.nutrition[dateKey].items = [];
+  }
+  if (state.nutrition[dateKey].morningWeight === undefined) {
+    state.nutrition[dateKey].morningWeight = "";
   }
   return state.nutrition[dateKey];
 }
@@ -413,6 +431,63 @@ function getNutritionTotals(entry) {
     }),
     { calories: 0, protein: 0 },
   );
+}
+
+function getProgressData(history) {
+  const values = history
+    .map((entry) => Number(entry.weight || 0))
+    .filter((value) => Number.isFinite(value) && value > 0)
+    .reverse();
+
+  if (values.length < 2) {
+    return {
+      values,
+      summary: values.length === 1 ? `ביצוע אחרון: ${values[0]} ק"ג` : "אין עדיין מספיק נתונים לגרף",
+    };
+  }
+
+  const diff = values[values.length - 1] - values[0];
+  const trend = diff > 0 ? `שיפור של ${diff.toFixed(1)} ק"ג` : diff < 0 ? `ירידה של ${Math.abs(diff).toFixed(1)} ק"ג` : "יציב ללא שינוי";
+  return { values, summary: trend };
+}
+
+function renderProgressChart(values) {
+  if (!values.length) {
+    return `<div class="history-item"><small>שמור לפחות ביצוע אחד כדי לראות גרף התקדמות.</small></div>`;
+  }
+
+  if (values.length === 1) {
+    return `<div class="history-item"><small>נשמר משקל אחרון: ${values[0]} ק"ג. צריך עוד אימון אחד לפחות לגרף.</small></div>`;
+  }
+
+  const width = 320;
+  const height = 120;
+  const padding = 16;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const stepX = (width - padding * 2) / (values.length - 1);
+  const points = values
+    .map((value, index) => {
+      const x = padding + index * stepX;
+      const y = height - padding - ((value - min) / range) * (height - padding * 2);
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="גרף התקדמות">
+      <polyline fill="none" stroke="rgba(122, 201, 255, 0.25)" stroke-width="2" points="${padding},${height - padding} ${width - padding},${height - padding}" />
+      <polyline fill="none" stroke="#7ac9ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+      ${values
+        .map((value, index) => {
+          const x = padding + index * stepX;
+          const y = height - padding - ((value - min) / range) * (height - padding * 2);
+          return `<circle cx="${x}" cy="${y}" r="4.5" fill="#ef7d33"></circle>`;
+        })
+        .join("")}
+    </svg>
+  `;
 }
 
 function hasNutritionData(entry) {
@@ -487,6 +562,12 @@ function renderEditor() {
       videoLink.href = exercise.videoUrl;
       videoLink.classList.remove("hidden");
     }
+
+    const progressSummary = fragment.querySelector(".progress-summary");
+    const progressChart = fragment.querySelector(".progress-chart");
+    const progressData = getProgressData(exercise.history);
+    progressSummary.textContent = progressData.summary;
+    progressChart.innerHTML = renderProgressChart(progressData.values);
 
     const sessionWeight = fragment.querySelector(".session-weight");
     const sessionReps = fragment.querySelector(".session-reps");
@@ -576,6 +657,10 @@ function loadState() {
     if (!workouts.length) return buildDefaultState();
     return {
       planName: parsed.planName || "התוכנית שלי",
+      profile: {
+        weight: parsed.profile?.weight || "",
+        height: parsed.profile?.height || "",
+      },
       activeWorkoutId: parsed.activeWorkoutId || workouts[0].id,
       workouts,
       nutrition,
@@ -601,6 +686,7 @@ function buildDefaultState() {
     .map((exercise) => createExercise(exercise));
   return {
     planName: "התוכנית שלי",
+    profile: { weight: "", height: "" },
     activeWorkoutId: workout.id,
     workouts: [workout],
     nutrition: {},
@@ -636,6 +722,7 @@ function normalizeNutrition(nutrition) {
           }))
         : legacyItems,
       notes: entry.notes || "",
+      morningWeight: entry.morningWeight || "",
     };
   });
   return normalized;
