@@ -1,0 +1,13 @@
+{
+  "name": "GymFlow",
+  "short_name": "GymFlow",
+  "description": "אפליקציית חדר כושר לניהול תוכנית אימונים, תרגילים ומשקלים.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4efe7",
+  "theme_color": "#dd6b20"
+}
