@@ -26,6 +26,7 @@
         <button id="showNutritionViewBtn" class="ghost-btn view-switch-btn" type="button">תזונה</button>
         <button id="showGoalsViewBtn" class="ghost-btn view-switch-btn" type="button">יעדים</button>
         <button id="showStrengthViewBtn" class="ghost-btn view-switch-btn" type="button">חוזק</button>
+        <button id="showTimerViewBtn" class="ghost-btn view-switch-btn" type="button">טיימר</button>
         <button id="showCalculatorsViewBtn" class="ghost-btn view-switch-btn" type="button">מחשבונים</button>
       </div>
     </div>
@@ -314,6 +315,32 @@
         </div>
         <div id="muscleRadarChart" class="muscle-radar-chart"></div>
         <div id="muscleMapChips" class="detail-chips"></div>
+      </section>
+    </aside>
+    <aside id="timerView" class="nutrition-sidebar hidden">
+      <section class="nutrition-board side-board timer-screen">
+        <div class="panel-heading panel-heading-tight">
+          <div>
+            <p class="eyebrow">טיימר</p>
+            <h2>טיימר מנוחה ואימון</h2>
+            <p id="timerSubtitle" class="section-subtitle">בחר זמן מוכן, הפעל, עצור או אפס מתי שצריך.</p>
+          </div>
+          <div id="timerChips" class="detail-chips"></div>
+        </div>
+        <div class="timer-card">
+          <div id="timerDisplay" class="timer-display">02:00</div>
+          <div id="timerQuickOptions" class="timer-quick-options"></div>
+          <label>
+            <span class="label">זמן מותאם אישית בשניות</span>
+            <input id="timerCustomSeconds" class="text-input" type="number" min="1" step="1" placeholder="למשל: 90">
+          </label>
+          <div class="nutrition-actions">
+            <button id="startTimerBtn" class="primary-btn" type="button">התחל</button>
+            <button id="pauseTimerBtn" class="ghost-btn" type="button">עצור</button>
+            <button id="resetTimerBtn" class="ghost-btn" type="button">איפוס</button>
+          </div>
+          <div id="timerStatus" class="target-status-card">הטיימר מוכן להפעלה.</div>
+        </div>
       </section>
     </aside>
     <aside id="calculatorsView" class="nutrition-sidebar hidden">

@@ -122,6 +122,7 @@ const EXERCISE_LIBRARY = [
 
 const today = new Date();
 const state = loadState();
+let timerIntervalId = null;
 
 const elements = {
   planName: document.querySelector("#planName"),
@@ -175,12 +176,23 @@ const elements = {
   showNutritionViewBtn: document.querySelector("#showNutritionViewBtn"),
   showGoalsViewBtn: document.querySelector("#showGoalsViewBtn"),
   showStrengthViewBtn: document.querySelector("#showStrengthViewBtn"),
+  showTimerViewBtn: document.querySelector("#showTimerViewBtn"),
   showCalculatorsViewBtn: document.querySelector("#showCalculatorsViewBtn"),
   workoutView: document.querySelector("#workoutView"),
   nutritionView: document.querySelector("#nutritionView"),
   goalsView: document.querySelector("#goalsView"),
   strengthView: document.querySelector("#strengthView"),
+  timerView: document.querySelector("#timerView"),
   calculatorsView: document.querySelector("#calculatorsView"),
+  timerSubtitle: document.querySelector("#timerSubtitle"),
+  timerChips: document.querySelector("#timerChips"),
+  timerDisplay: document.querySelector("#timerDisplay"),
+  timerQuickOptions: document.querySelector("#timerQuickOptions"),
+  timerCustomSeconds: document.querySelector("#timerCustomSeconds"),
+  startTimerBtn: document.querySelector("#startTimerBtn"),
+  pauseTimerBtn: document.querySelector("#pauseTimerBtn"),
+  resetTimerBtn: document.querySelector("#resetTimerBtn"),
+  timerStatus: document.querySelector("#timerStatus"),
   calculatorsSubtitle: document.querySelector("#calculatorsSubtitle"),
   calculatorsChips: document.querySelector("#calculatorsChips"),
   calculatorPicker: document.querySelector("#calculatorPicker"),
@@ -333,7 +345,21 @@ function bindEvents() {
   elements.showNutritionViewBtn.addEventListener("click", () => setCurrentView("nutrition"));
   elements.showGoalsViewBtn.addEventListener("click", () => setCurrentView("goals"));
   if (elements.showStrengthViewBtn) elements.showStrengthViewBtn.addEventListener("click", () => setCurrentView("strength"));
+  if (elements.showTimerViewBtn) elements.showTimerViewBtn.addEventListener("click", () => setCurrentView("timer"));
   if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.addEventListener("click", () => setCurrentView("calculators"));
+  if (elements.timerCustomSeconds) elements.timerCustomSeconds.addEventListener("input", (event) => {
+    const value = Math.max(Number(event.target.value || 0), 0);
+    state.timer.selectedSeconds = value;
+    if (!state.timer.isRunning) {
+      state.timer.remainingSeconds = value;
+      state.timer.finished = false;
+    }
+    persist();
+    renderTimer();
+  });
+  if (elements.startTimerBtn) elements.startTimerBtn.addEventListener("click", startTimer);
+  if (elements.pauseTimerBtn) elements.pauseTimerBtn.addEventListener("click", pauseTimer);
+  if (elements.resetTimerBtn) elements.resetTimerBtn.addEventListener("click", resetTimer);
   bindCalculatorInput(elements.bmiWeight, "bmi", "weight");
   bindCalculatorInput(elements.bmiHeight, "bmi", "height");
   bindCalculatorInput(elements.proteinWeight, "protein", "weight");
@@ -438,6 +464,7 @@ function render() {
   renderCurrentView();
   renderStats();
   renderGoalsPanel();
+  renderTimer();
   renderCalculators();
   renderTabs();
   renderLibrary();
@@ -453,21 +480,25 @@ function renderCurrentView() {
   const isNutritionView = state.currentView === "nutrition";
   const isGoalsView = state.currentView === "goals";
   const isStrengthView = state.currentView === "strength";
+  const isTimerView = state.currentView === "timer";
   const isCalculatorsView = state.currentView === "calculators";
   elements.workoutView.classList.toggle("hidden", !isWorkoutView);
   elements.nutritionView.classList.toggle("hidden", !isNutritionView);
   elements.goalsView.classList.toggle("hidden", !isGoalsView);
   elements.strengthView.classList.toggle("hidden", !isStrengthView);
+  elements.timerView.classList.toggle("hidden", !isTimerView);
   elements.calculatorsView.classList.toggle("hidden", !isCalculatorsView);
   elements.nutritionView.classList.toggle("full-view", isNutritionView);
   elements.goalsView.classList.toggle("full-view", isGoalsView);
   elements.strengthView.classList.toggle("full-view", isStrengthView);
+  elements.timerView.classList.toggle("full-view", isTimerView);
   elements.calculatorsView.classList.toggle("full-view", isCalculatorsView);
   document.querySelector(".sidebar").classList.toggle("hidden", !isWorkoutView);
   elements.showWorkoutViewBtn.classList.toggle("active", isWorkoutView);
   elements.showNutritionViewBtn.classList.toggle("active", isNutritionView);
   elements.showGoalsViewBtn.classList.toggle("active", isGoalsView);
   if (elements.showStrengthViewBtn) elements.showStrengthViewBtn.classList.toggle("active", isStrengthView);
+  if (elements.showTimerViewBtn) elements.showTimerViewBtn.classList.toggle("active", isTimerView);
   if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.classList.toggle("active", isCalculatorsView);
 }
 
@@ -475,6 +506,7 @@ function setCurrentView(view) {
   state.currentView = view;
   persist();
   renderCurrentView();
+  renderTimer();
   renderCalculators();
 }
 
@@ -509,6 +541,128 @@ function renderGoalsPanel() {
   if (elements.goalsDailyCaloriesTarget) elements.goalsDailyCaloriesTarget.value = state.profile.dailyCaloriesTarget || "";
   if (elements.goalsDailyProteinTarget) elements.goalsDailyProteinTarget.value = state.profile.dailyProteinTarget || "";
   renderExerciseGoalsList();
+}
+
+function renderTimer() {
+  if (!elements.timerDisplay || !elements.timerQuickOptions) return;
+  syncTimerInterval();
+  const options = [30, 60, 120, 180, 300];
+  elements.timerQuickOptions.innerHTML = "";
+  options.forEach((seconds) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `ghost-btn timer-option-btn ${state.timer.selectedSeconds === seconds ? "active" : ""}`;
+    button.textContent = `${seconds} שנ'`;
+    button.addEventListener("click", () => {
+      state.timer.selectedSeconds = seconds;
+      state.timer.remainingSeconds = seconds;
+      state.timer.isRunning = false;
+      state.timer.finished = false;
+      persist();
+      renderTimer();
+    });
+    elements.timerQuickOptions.appendChild(button);
+  });
+  if (elements.timerCustomSeconds) {
+    elements.timerCustomSeconds.value = state.timer.selectedSeconds || "";
+  }
+  elements.timerDisplay.textContent = formatTimer(state.timer.remainingSeconds || 0);
+  elements.timerDisplay.classList.toggle("finished", Boolean(state.timer.finished));
+  if (elements.timerStatus) {
+    elements.timerStatus.textContent = state.timer.finished
+      ? "הזמן נגמר."
+      : state.timer.isRunning
+        ? "הטיימר רץ עכשיו."
+        : "הטיימר מוכן להפעלה.";
+    elements.timerStatus.className = `target-status-card ${state.timer.finished ? "success" : ""}`;
+  }
+  if (elements.timerSubtitle) {
+    elements.timerSubtitle.textContent = state.timer.isRunning
+      ? `נשארו ${formatTimer(state.timer.remainingSeconds)}.`
+      : `הזמן שנבחר: ${formatTimer(state.timer.selectedSeconds || 0)}.`;
+  }
+  if (elements.timerChips) {
+    elements.timerChips.innerHTML = "";
+    [`נבחר: ${formatTimer(state.timer.selectedSeconds || 0)}`, `נותר: ${formatTimer(state.timer.remainingSeconds || 0)}`].forEach((text) => {
+      const chip = document.createElement("span");
+      chip.className = "detail-chip";
+      chip.textContent = text;
+      elements.timerChips.appendChild(chip);
+    });
+  }
+}
+
+function startTimer() {
+  const selected = Number(state.timer.selectedSeconds || 0);
+  if (!selected) return;
+  if (!state.timer.remainingSeconds || state.timer.finished) {
+    state.timer.remainingSeconds = selected;
+    state.timer.finished = false;
+  }
+  state.timer.isRunning = true;
+  persist();
+  syncTimerInterval();
+  renderTimer();
+}
+
+function pauseTimer() {
+  state.timer.isRunning = false;
+  persist();
+  syncTimerInterval();
+  renderTimer();
+}
+
+function resetTimer() {
+  state.timer.isRunning = false;
+  state.timer.finished = false;
+  state.timer.remainingSeconds = Number(state.timer.selectedSeconds || 0);
+  persist();
+  syncTimerInterval();
+  renderTimer();
+}
+
+function syncTimerInterval() {
+  if (state.timer.isRunning && !timerIntervalId) {
+    timerIntervalId = window.setInterval(tickTimer, 1000);
+  }
+  if (!state.timer.isRunning && timerIntervalId) {
+    window.clearInterval(timerIntervalId);
+    timerIntervalId = null;
+  }
+}
+
+function tickTimer() {
+  if (!state.timer.isRunning) return;
+  state.timer.remainingSeconds = Math.max(Number(state.timer.remainingSeconds || 0) - 1, 0);
+  if (state.timer.remainingSeconds <= 0) {
+    state.timer.isRunning = false;
+    state.timer.finished = true;
+    playTimerEndBeep();
+  }
+  persist();
+  renderTimer();
+}
+
+function playTimerEndBeep() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+    gain.gain.value = 0.04;
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.35);
+  } catch {}
+}
+
+function formatTimer(totalSeconds) {
+  const safe = Math.max(Number(totalSeconds || 0), 0);
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 function renderCalculators() {
@@ -1724,6 +1878,7 @@ function loadState() {
       workoutWeekDate: parsed.workoutWeekDate || formatIsoDate(today),
       selectedWorkoutLogDate: parsed.selectedWorkoutLogDate || formatIsoDate(today),
       currentView: parsed.currentView || "workouts",
+      timer: normalizeTimer(parsed.timer),
       calculators: normalizeCalculators(parsed.calculators, parsed.profile),
       editingExerciseId: parsed.editingExerciseId || null,
       editingWorkoutDetails: Boolean(parsed.editingWorkoutDetails),
@@ -1758,6 +1913,7 @@ function buildDefaultState() {
     workoutWeekDate: formatIsoDate(today),
     selectedWorkoutLogDate: formatIsoDate(today),
     currentView: "workouts",
+    timer: normalizeTimer({}),
     calculators: normalizeCalculators({}, { weight: "", height: "", birthDate: "" }),
     editingExerciseId: null,
     editingWorkoutDetails: false,
@@ -1833,6 +1989,16 @@ function normalizeCalculators(calculators, profile) {
       activity: calculators?.calories?.activity || "1.55",
       goal: calculators?.calories?.goal || "maintain",
     },
+  };
+}
+
+function normalizeTimer(timer) {
+  const selectedSeconds = Number(timer?.selectedSeconds || 120);
+  return {
+    selectedSeconds,
+    remainingSeconds: Number(timer?.remainingSeconds ?? selectedSeconds),
+    isRunning: false,
+    finished: Boolean(timer?.finished),
   };
 }
 

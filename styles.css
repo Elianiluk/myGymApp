@@ -131,6 +131,7 @@ a {
 }
 
 .strength-screen,
+.timer-screen,
 .calculators-screen {
   display: grid;
   gap: 18px;
@@ -155,7 +156,7 @@ a {
 .view-switch {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 10px;
 }
 
@@ -990,6 +991,83 @@ a {
   margin-bottom: 6px;
 }
 
+.timer-card {
+  padding: 22px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(239, 125, 51, 0.2), transparent 30%),
+    radial-gradient(circle at 100% 100%, rgba(122, 201, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(14, 26, 46, 0.94);
+  border: 1px solid rgba(147, 164, 194, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 16px;
+}
+
+.timer-display {
+  text-align: center;
+  font-family: "Rubik", sans-serif;
+  font-size: clamp(2.4rem, 8vw, 4rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 20px 12px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(8, 17, 31, 0.42);
+  border: 1px solid rgba(147, 164, 194, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 24px 40px rgba(0, 0, 0, 0.16);
+}
+
+.timer-display.finished {
+  color: #b9ff57;
+  box-shadow: 0 0 0 1px rgba(185, 255, 87, 0.28), 0 0 24px rgba(185, 255, 87, 0.12);
+}
+
+.timer-quick-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 10px;
+}
+
+.timer-option-btn {
+  min-height: 52px;
+  border-radius: 18px;
+  border-color: rgba(147, 164, 194, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.03);
+  font-weight: 800;
+}
+
+.timer-option-btn.active {
+  background: linear-gradient(135deg, #ef7d33, #f2a35d);
+  color: white;
+  box-shadow: 0 18px 34px rgba(239, 125, 51, 0.24);
+}
+
+.timer-screen .nutrition-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.timer-screen .nutrition-actions > button {
+  min-height: 52px;
+}
+
+.timer-screen .target-status-card {
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(147, 164, 194, 0.14);
+}
+
 .calculator-picker-btn {
   min-height: 88px;
 }
@@ -1345,6 +1423,24 @@ a {
 
   .detail-chips {
     gap: 8px;
+  }
+
+  .timer-quick-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .timer-screen .nutrition-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .timer-card {
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .timer-display {
+    padding: 16px 10px;
+    border-radius: 20px;
   }
 
   .hero-card,
