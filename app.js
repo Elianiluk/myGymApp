@@ -129,6 +129,9 @@ const elements = {
   profileBody: document.querySelector("#profileBody"),
   profileSubtitle: document.querySelector("#profileSubtitle"),
   profileChips: document.querySelector("#profileChips"),
+  muscleMapSubtitle: document.querySelector("#muscleMapSubtitle"),
+  muscleRadarChart: document.querySelector("#muscleRadarChart"),
+  muscleMapChips: document.querySelector("#muscleMapChips"),
   profileWeight: document.querySelector("#profileWeight"),
   profileHeight: document.querySelector("#profileHeight"),
   profileBirthDate: document.querySelector("#profileBirthDate"),
@@ -171,10 +174,12 @@ const elements = {
   showWorkoutViewBtn: document.querySelector("#showWorkoutViewBtn"),
   showNutritionViewBtn: document.querySelector("#showNutritionViewBtn"),
   showGoalsViewBtn: document.querySelector("#showGoalsViewBtn"),
+  showStrengthViewBtn: document.querySelector("#showStrengthViewBtn"),
   showCalculatorsViewBtn: document.querySelector("#showCalculatorsViewBtn"),
   workoutView: document.querySelector("#workoutView"),
   nutritionView: document.querySelector("#nutritionView"),
   goalsView: document.querySelector("#goalsView"),
+  strengthView: document.querySelector("#strengthView"),
   calculatorsView: document.querySelector("#calculatorsView"),
   calculatorsSubtitle: document.querySelector("#calculatorsSubtitle"),
   calculatorsChips: document.querySelector("#calculatorsChips"),
@@ -327,6 +332,7 @@ function bindEvents() {
   elements.showWorkoutViewBtn.addEventListener("click", () => setCurrentView("workouts"));
   elements.showNutritionViewBtn.addEventListener("click", () => setCurrentView("nutrition"));
   elements.showGoalsViewBtn.addEventListener("click", () => setCurrentView("goals"));
+  if (elements.showStrengthViewBtn) elements.showStrengthViewBtn.addEventListener("click", () => setCurrentView("strength"));
   if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.addEventListener("click", () => setCurrentView("calculators"));
   bindCalculatorInput(elements.bmiWeight, "bmi", "weight");
   bindCalculatorInput(elements.bmiHeight, "bmi", "height");
@@ -446,18 +452,22 @@ function renderCurrentView() {
   const isWorkoutView = state.currentView === "workouts";
   const isNutritionView = state.currentView === "nutrition";
   const isGoalsView = state.currentView === "goals";
+  const isStrengthView = state.currentView === "strength";
   const isCalculatorsView = state.currentView === "calculators";
   elements.workoutView.classList.toggle("hidden", !isWorkoutView);
   elements.nutritionView.classList.toggle("hidden", !isNutritionView);
   elements.goalsView.classList.toggle("hidden", !isGoalsView);
+  elements.strengthView.classList.toggle("hidden", !isStrengthView);
   elements.calculatorsView.classList.toggle("hidden", !isCalculatorsView);
   elements.nutritionView.classList.toggle("full-view", isNutritionView);
   elements.goalsView.classList.toggle("full-view", isGoalsView);
+  elements.strengthView.classList.toggle("full-view", isStrengthView);
   elements.calculatorsView.classList.toggle("full-view", isCalculatorsView);
   document.querySelector(".sidebar").classList.toggle("hidden", !isWorkoutView);
   elements.showWorkoutViewBtn.classList.toggle("active", isWorkoutView);
   elements.showNutritionViewBtn.classList.toggle("active", isNutritionView);
   elements.showGoalsViewBtn.classList.toggle("active", isGoalsView);
+  if (elements.showStrengthViewBtn) elements.showStrengthViewBtn.classList.toggle("active", isStrengthView);
   if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.classList.toggle("active", isCalculatorsView);
 }
 
@@ -491,6 +501,7 @@ function renderStats() {
   elements.workoutCount.textContent = state.workouts.length;
   elements.exerciseCount.textContent = state.workouts.reduce((sum, workout) => sum + workout.exercises.length, 0);
   elements.sessionCount.textContent = state.workouts.reduce((sum, workout) => sum + workout.exercises.reduce((inner, exercise) => inner + exercise.history.length, 0), 0);
+  renderMuscleMap();
 }
 
 function renderGoalsPanel() {
@@ -660,6 +671,108 @@ function getAllExercises() {
   return state.workouts.flatMap((workout) => workout.exercises);
 }
 
+function renderMuscleMap() {
+  if (!elements.muscleRadarChart || !elements.muscleMapChips) return;
+  const data = getMuscleMapData(getAllExercises());
+  elements.muscleRadarChart.innerHTML = renderRadarChart(data.values);
+  elements.muscleMapChips.innerHTML = "";
+  data.topGroups.forEach((text) => {
+    const chip = document.createElement("span");
+    chip.className = "detail-chip";
+    chip.textContent = text;
+    elements.muscleMapChips.appendChild(chip);
+  });
+  if (elements.muscleMapSubtitle) {
+    elements.muscleMapSubtitle.textContent = data.subtitle;
+  }
+}
+
+function getMuscleMapData(exercises) {
+  const labels = ["חזה", "גב", "רגליים", "כתפיים", "זרועות", "בטן"];
+  const buckets = Object.fromEntries(labels.map((label) => [label, 0]));
+  exercises.forEach((exercise) => {
+    const bucket = mapExerciseToMuscleBucket(exercise);
+    const score = getExerciseStrengthScore(exercise);
+    buckets[bucket] += score;
+  });
+  const rawValues = labels.map((label) => buckets[label]);
+  const maxValue = Math.max(...rawValues, 0);
+  const values = rawValues.map((value) => {
+    if (!maxValue) return 20;
+    return Math.max(18, Math.round((value / maxValue) * 100));
+  });
+  const sorted = labels
+    .map((label, index) => ({ label, score: rawValues[index] }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .filter((item) => item.score > 0)
+    .map((item) => `${item.label}: ${Math.round(item.score)} נק'`);
+  return {
+    labels,
+    values,
+    topGroups: sorted.length ? sorted : ["הוסף עוד משקלים כדי לראות דפוס חזק יותר"],
+    subtitle: maxValue
+      ? "הגרף מבוסס על משקלים נוכחיים והיסטוריית הביצועים השמורה."
+      : "עדיין אין מספיק נתוני משקל, אז מוצג בסיס התחלתי.",
+  };
+}
+
+function mapExerciseToMuscleBucket(exercise) {
+  const text = `${exercise.group || ""} ${exercise.name || ""} ${exercise.englishName || ""}`.toLowerCase();
+  if (text.includes("חזה") || text.includes("bench") || text.includes("chest")) return "חזה";
+  if (text.includes("גב") || text.includes("row") || text.includes("pulldown") || text.includes("pull")) return "גב";
+  if (text.includes("רגל") || text.includes("סקוואט") || text.includes("squat") || text.includes("המסטרינג") || text.includes("תאומים")) return "רגליים";
+  if (text.includes("כתפ") || text.includes("shoulder") || text.includes("arnold") || text.includes("lateral raise")) return "כתפיים";
+  if (text.includes("בטן") || text.includes("plank") || text.includes("crunch") || text.includes("abs") || text.includes("ab")) return "בטן";
+  if (text.includes("בייספס") || text.includes("טרייספס") || text.includes("curl") || text.includes("pushdown") || text.includes("arm")) return "זרועות";
+  return "זרועות";
+}
+
+function getExerciseStrengthScore(exercise) {
+  const current = Number(exercise.weight || 0);
+  const goal = Number(exercise.goalWeight || 0);
+  const history = Array.isArray(exercise.history) ? exercise.history : [];
+  const historyMax = history.reduce((max, entry) => Math.max(max, Number(entry.weight || 0)), 0);
+  const setsBonus = Math.max(Number(exercise.sets || 0), 1) * 2;
+  const bodyweightBonus = current || historyMax || goal ? 0 : 12;
+  return Math.max(current, historyMax, goal * 0.85, bodyweightBonus) + setsBonus;
+}
+
+function renderRadarChart(values) {
+  const labels = ["חזה", "גב", "רגליים", "כתפיים", "זרועות", "בטן"];
+  const centerX = 170;
+  const centerY = 150;
+  const radius = 84;
+  const levels = [25, 50, 75, 100];
+  const pointsForLevel = (level) => labels.map((_, index) => {
+    const angle = ((Math.PI * 2) / labels.length) * index - (Math.PI / 2);
+    const currentRadius = (radius * level) / 100;
+    const x = centerX + (Math.cos(angle) * currentRadius);
+    const y = centerY + (Math.sin(angle) * currentRadius);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const dataPoints = labels.map((_, index) => {
+    const angle = ((Math.PI * 2) / labels.length) * index - (Math.PI / 2);
+    const currentRadius = (radius * values[index]) / 100;
+    return {
+      x: centerX + (Math.cos(angle) * currentRadius),
+      y: centerY + (Math.sin(angle) * currentRadius),
+      labelX: centerX + (Math.cos(angle) * (radius + 26)),
+      labelY: centerY + (Math.sin(angle) * (radius + 26)),
+    };
+  });
+  const dataPolygon = dataPoints.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+  return `
+    <svg viewBox="0 0 340 300" class="radar-svg" role="img" aria-label="חוזק לפי קבוצות שרירים">
+      ${levels.map((level) => `<polygon points="${pointsForLevel(level)}" class="radar-grid radar-grid-${level}" />`).join("")}
+      ${dataPoints.map((point) => `<line x1="${centerX}" y1="${centerY}" x2="${point.labelX}" y2="${point.labelY}" class="radar-axis" />`).join("")}
+      <polygon points="${dataPolygon}" class="radar-shape" />
+      ${dataPoints.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="4" class="radar-dot" />`).join("")}
+      ${dataPoints.map((point, index) => `<text x="${point.labelX}" y="${point.labelY}" class="radar-label" text-anchor="middle">${labels[index]}</text>`).join("")}
+    </svg>
+  `;
+}
+
 function getCalculatorDefinitions() {
   return [
     { id: "bmi", title: "BMI", subtitle: "יחס משקל וגובה" },
@@ -803,10 +916,21 @@ function renderLibrary() {
     button.type = "button";
     button.className = "library-item";
     button.innerHTML = `
-      <strong>${escapeHtml(exercise.name)}</strong>
-      <small>${escapeHtml(exercise.englishName || "")}</small>
-      <small>${escapeHtml(exercise.group)} · ${escapeHtml(exercise.equipment)} · ${escapeHtml(exercise.difficulty)}</small>
+      <div class="library-item-media">
+        <img class="library-item-image" src="${escapeAttribute(getExerciseImage(exercise))}" alt="${escapeAttribute(exercise.name || "תרגיל")}">
+      </div>
+      <div class="library-item-content">
+        <strong>${escapeHtml(exercise.name)}</strong>
+        <small>${escapeHtml(exercise.englishName || "")}</small>
+        <small>${escapeHtml(exercise.group)} · ${escapeHtml(exercise.equipment)} · ${escapeHtml(exercise.difficulty)}</small>
+      </div>
     `;
+    const libraryImage = button.querySelector(".library-item-image");
+    if (libraryImage) {
+      libraryImage.addEventListener("error", () => {
+        libraryImage.src = createExerciseIllustration(exercise);
+      }, { once: true });
+    }
     button.addEventListener("click", () => {
       const createdExercise = createExercise(exercise);
       ensureActiveWorkout().exercises.push(createdExercise);
@@ -1368,6 +1492,9 @@ function renderEditor() {
     const image = fragment.querySelector(".exercise-image");
     image.src = getExerciseImage(exercise);
     image.alt = exercise.name ? `תמונה של ${exercise.name}${exercise.englishName ? ` / ${exercise.englishName}` : ""}` : "תמונה של תרגיל";
+    image.addEventListener("error", () => {
+      image.src = createExerciseIllustration(exercise);
+    }, { once: true });
 
     bindValue(fragment, ".exercise-name", exercise.name, (value) => {
       exercise.name = value;
@@ -1912,8 +2039,132 @@ function createExerciseIllustration(exercise) {
   const title = encodeXml(exercise.name || "GymFlow");
   const group = encodeXml(exercise.group || "Exercise");
   const equipment = encodeXml(exercise.equipment || "Training");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${palette[0]}"/><stop offset="100%" stop-color="${palette[1]}"/></linearGradient></defs><rect width="1200" height="700" rx="48" fill="url(#bg)"/><circle cx="1010" cy="110" r="150" fill="rgba(255,255,255,0.12)"/><circle cx="180" cy="590" r="180" fill="rgba(255,255,255,0.1)"/><g fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><path d="M410 520c20-86 48-135 88-186 18-22 34-48 43-84"/><path d="M665 252c9 36 25 62 43 84 40 51 68 100 88 186"/><path d="M494 316c36 18 72 27 106 27s70-9 106-27"/><path d="M422 508h374"/></g><text x="72" y="110" fill="white" font-size="52" font-family="Rubik, Arial, sans-serif" font-weight="800">${title}</text><text x="72" y="172" fill="rgba(255,255,255,0.85)" font-size="30" font-family="Heebo, Arial, sans-serif">${group} · ${equipment}</text><text x="72" y="628" fill="rgba(255,255,255,0.92)" font-size="28" font-family="Heebo, Arial, sans-serif">GymFlow Elite</text></svg>`;
+  const visual = getExerciseVisualPreset(exercise);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${palette[0]}"/>
+        <stop offset="100%" stop-color="${palette[1]}"/>
+      </linearGradient>
+      <linearGradient id="floor" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
+      </linearGradient>
+    </defs>
+    <rect width="1200" height="700" rx="48" fill="url(#bg)"/>
+    <circle cx="1010" cy="110" r="150" fill="rgba(255,255,255,0.12)"/>
+    <circle cx="180" cy="590" r="180" fill="rgba(255,255,255,0.08)"/>
+    <path d="M0 540 C180 500 320 575 485 555 C625 537 736 462 920 498 C1038 522 1128 580 1200 566 V700 H0 Z" fill="rgba(8,17,31,0.28)"/>
+    <rect x="84" y="86" width="232" height="48" rx="24" fill="rgba(255,255,255,0.16)"/>
+    <text x="200" y="118" text-anchor="middle" fill="white" font-size="26" font-family="Heebo, Arial, sans-serif" font-weight="700">${group}</text>
+    <g transform="translate(0 8)">
+      <ellipse cx="610" cy="608" rx="284" ry="28" fill="rgba(0,0,0,0.16)"/>
+      <rect x="322" y="576" width="576" height="18" rx="9" fill="url(#floor)"/>
+      ${visual}
+    </g>
+    <text x="72" y="612" fill="white" font-size="60" font-family="Rubik, Arial, sans-serif" font-weight="800">${title}</text>
+    <text x="72" y="658" fill="rgba(255,255,255,0.88)" font-size="30" font-family="Heebo, Arial, sans-serif">${equipment}</text>
+  </svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function getExerciseVisualPreset(exercise) {
+  const text = `${exercise.name || ""} ${exercise.englishName || ""} ${exercise.group || ""} ${exercise.equipment || ""}`.toLowerCase();
+  if (text.includes("בנץ") || text.includes("bench") || text.includes("לחיצת חזה")) {
+    return `
+      <rect x="400" y="472" width="420" height="22" rx="11" fill="rgba(255,255,255,0.22)"/>
+      <rect x="430" y="494" width="26" height="84" rx="12" fill="rgba(255,255,255,0.18)"/>
+      <rect x="764" y="494" width="26" height="84" rx="12" fill="rgba(255,255,255,0.18)"/>
+      <path d="M454 430 L514 430 L566 358 L650 358 L704 430 L766 430" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="606" cy="322" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M542 360 L494 430 M670 360 L718 430 M592 356 L564 424 M620 356 L648 424" fill="none" stroke="rgba(255,255,255,0.84)" stroke-width="18" stroke-linecap="round"/>
+      <path d="M468 278 H744" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="18" stroke-linecap="round"/>
+      <path d="M498 260 V298 M714 260 V298" fill="none" stroke="rgba(255,255,255,0.84)" stroke-width="14" stroke-linecap="round"/>
+      <circle cx="468" cy="278" r="24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+      <circle cx="744" cy="278" r="24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+    `;
+  }
+  if (text.includes("סקוואט") || text.includes("squat") || text.includes("לחיצת רגליים") || text.includes("leg press")) {
+    return `
+      <path d="M522 226 V522 M690 226 V522" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="16" stroke-linecap="round"/>
+      <path d="M474 248 H738" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="18" stroke-linecap="round"/>
+      <circle cx="606" cy="224" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M606 252 L606 352 L546 424 M606 352 L676 424 M548 296 L486 336 M664 296 L726 336" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M456 248 H756" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="16" stroke-linecap="round"/>
+      <circle cx="432" cy="248" r="24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="12"/>
+      <circle cx="780" cy="248" r="24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="12"/>
+    `;
+  }
+  if (text.includes("דדליפט") || text.includes("deadlift") || text.includes("row") || text.includes("חתירה")) {
+    return `
+      <path d="M426 458 H786" fill="none" stroke="rgba(255,255,255,0.94)" stroke-width="18" stroke-linecap="round"/>
+      <circle cx="386" cy="458" r="30" fill="none" stroke="rgba(255,255,255,0.94)" stroke-width="14"/>
+      <circle cx="826" cy="458" r="30" fill="none" stroke="rgba(255,255,255,0.94)" stroke-width="14"/>
+      <circle cx="612" cy="250" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M612 280 L586 346 L520 396 M588 346 L650 390 M586 346 L682 346 M522 396 L470 458 M648 390 L732 458" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    `;
+  }
+  if (text.includes("פולי") || text.includes("pulldown") || text.includes("מתח") || text.includes("pull-up") || text.includes("chin")) {
+    return `
+      <path d="M394 178 H818" fill="none" stroke="rgba(255,255,255,0.94)" stroke-width="18" stroke-linecap="round"/>
+      <path d="M430 178 V508 M782 178 V508" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="16" stroke-linecap="round"/>
+      <circle cx="606" cy="286" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M606 316 L606 412 L554 492 M606 412 L664 492 M606 338 L532 244 M606 338 L680 244" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="520" cy="232" r="14" fill="rgba(255,255,255,0.9)"/>
+      <circle cx="692" cy="232" r="14" fill="rgba(255,255,255,0.9)"/>
+    `;
+  }
+  if (text.includes("כתפ") || text.includes("press") || text.includes("arnold") || text.includes("raise")) {
+    return `
+      <circle cx="606" cy="244" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M606 274 L606 404 L554 492 M606 404 L664 492 M606 330 L530 258 M606 330 L682 258" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="510" cy="236" r="24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+      <circle cx="702" cy="236" r="24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+    `;
+  }
+  if (text.includes("curl") || text.includes("בייספס") || text.includes("מרפקים")) {
+    return `
+      <circle cx="606" cy="250" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M606 278 L606 406 L548 492 M606 406 L664 492 M606 330 L548 356 L510 320 M606 330 L664 356 L702 320" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="496" cy="312" r="18" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+      <circle cx="716" cy="312" r="18" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+    `;
+  }
+  if (text.includes("טרייספס") || text.includes("pushdown") || text.includes("מקבילים") || text.includes("dips")) {
+    return `
+      <path d="M468 220 H744" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="16" stroke-linecap="round"/>
+      <path d="M488 220 V520 M724 220 V520" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="16" stroke-linecap="round"/>
+      <circle cx="606" cy="286" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M606 316 L606 414 L552 494 M606 414 L662 494 M606 346 L546 388 L504 452 M606 346 L666 388 L708 452" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    `;
+  }
+  if (text.includes("מכרע") || text.includes("lunge") || text.includes("split squat") || text.includes("בולגרי")) {
+    return `
+      <circle cx="606" cy="236" r="28" fill="rgba(255,255,255,0.94)"/>
+      <path d="M606 266 L600 372 L520 440 M600 372 L688 418 M520 440 L472 520 M688 418 L756 520 M596 314 L532 346 M596 314 L668 286" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    `;
+  }
+  if (text.includes("פלאנק") || text.includes("crunch") || text.includes("בטן") || text.includes("leg raise")) {
+    return `
+      <rect x="394" y="496" width="424" height="18" rx="9" fill="rgba(255,255,255,0.18)"/>
+      <circle cx="486" cy="420" r="24" fill="rgba(255,255,255,0.94)"/>
+      <path d="M510 430 L612 446 L720 454 M610 446 L574 506 M710 452 L760 506 M486 444 L446 500" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    `;
+  }
+  if (text.includes("hip thrust") || text.includes("גלוט") || text.includes("ישבן")) {
+    return `
+      <rect x="348" y="450" width="156" height="24" rx="12" fill="rgba(255,255,255,0.18)"/>
+      <circle cx="548" cy="386" r="24" fill="rgba(255,255,255,0.94)"/>
+      <path d="M568 396 L640 414 L718 378 M640 414 L594 504 M718 378 L776 504 M604 416 L540 472 M718 378 H838" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="850" cy="378" r="24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+      <circle cx="882" cy="378" r="24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="12"/>
+    `;
+  }
+  return `
+    <circle cx="606" cy="244" r="28" fill="rgba(255,255,255,0.94)"/>
+    <path d="M606 274 L606 402 L548 492 M606 402 L664 492 M606 330 L536 358 M606 330 L676 358" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M474 520 H738" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="18" stroke-linecap="round"/>
+  `;
 }
 
 function getPalette(group) {

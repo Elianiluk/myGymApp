@@ -130,6 +130,7 @@ a {
   gap: 18px;
 }
 
+.strength-screen,
 .calculators-screen {
   display: grid;
   gap: 18px;
@@ -154,7 +155,7 @@ a {
 .view-switch {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 }
 
@@ -243,6 +244,59 @@ a {
   gap: 10px;
 }
 
+.muscle-map-panel {
+  overflow: hidden;
+}
+
+.muscle-radar-chart {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top, rgba(126, 211, 33, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(147, 164, 194, 0.12);
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.radar-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.radar-grid {
+  fill: none;
+  stroke: rgba(147, 164, 194, 0.22);
+  stroke-width: 1.4;
+}
+
+.radar-axis {
+  stroke: rgba(147, 164, 194, 0.18);
+  stroke-width: 1.2;
+}
+
+.radar-shape {
+  fill: rgba(126, 211, 33, 0.22);
+  stroke: #8bdd1a;
+  stroke-width: 3;
+}
+
+.radar-dot {
+  fill: #b9ff57;
+  stroke: rgba(8, 17, 31, 0.9);
+  stroke-width: 2;
+}
+
+.radar-label {
+  fill: #cfd7e8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .stat-card {
   padding: 14px 12px;
   border-radius: 20px;
@@ -329,6 +383,33 @@ a {
 
 .library-item strong {
   display: block;
+}
+
+.library-item {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.library-item-media {
+  width: 92px;
+  height: 92px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(147, 164, 194, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.library-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.library-item-content {
+  min-width: 0;
 }
 
 .main-content {
@@ -1191,6 +1272,10 @@ a {
 }
 
 @media (max-width: 720px) {
+  .top-nav {
+    padding: 10px 8px 0;
+  }
+
   .app-shell {
     width: min(100% - 16px, 100%);
     margin: 8px auto 18px;
@@ -1200,12 +1285,66 @@ a {
     width: min(100% - 16px, 100%);
     flex-direction: column;
     align-items: stretch;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .view-switch {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .view-switch-btn {
+    min-width: 0;
+    white-space: normal;
+    padding-inline: 10px;
+    min-height: 48px;
+  }
+
+  .nutrition-board,
+  .panel,
+  .hero-card,
+  .editor-panel,
+  .empty-state,
+  .brand-card,
+  .calculator-card,
+  .modal-card {
+    border-radius: 20px;
+  }
+
+  .nutrition-board,
+  .panel,
+  .hero-card,
+  .editor-panel,
+  .brand-card,
+  .calculator-card {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .modal-card {
+    width: min(100%, calc(100vw - 20px));
+    max-height: calc(100vh - 20px);
+    padding: 16px;
+  }
+
+  .calculator-picker,
+  .calculator-result-grid {
+    grid-template-columns: 1fr;
   }
 
   .stats-grid,
   .exercise-grid,
   .session-grid {
     grid-template-columns: 1fr;
+  }
+
+  .muscle-radar-chart {
+    max-width: 320px;
+    padding: 6px;
+  }
+
+  .detail-chips {
+    gap: 8px;
   }
 
   .hero-card,
@@ -1229,5 +1368,16 @@ a {
 
   .exercise-media {
     height: 240px;
+  }
+
+  .library-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .library-item-media {
+    width: 100%;
+    height: 160px;
   }
 }

@@ -25,6 +25,7 @@
         <button id="showWorkoutViewBtn" class="ghost-btn view-switch-btn" type="button">אימונים</button>
         <button id="showNutritionViewBtn" class="ghost-btn view-switch-btn" type="button">תזונה</button>
         <button id="showGoalsViewBtn" class="ghost-btn view-switch-btn" type="button">יעדים</button>
+        <button id="showStrengthViewBtn" class="ghost-btn view-switch-btn" type="button">חוזק</button>
         <button id="showCalculatorsViewBtn" class="ghost-btn view-switch-btn" type="button">מחשבונים</button>
       </div>
     </div>
@@ -300,6 +301,19 @@
         <div class="nutrition-actions">
           <button id="saveGoalsBtn" class="ghost-btn" type="button">שמור יעדים</button>
         </div>
+      </section>
+    </aside>
+    <aside id="strengthView" class="nutrition-sidebar hidden">
+      <section class="nutrition-board side-board strength-screen">
+        <div class="panel-heading panel-heading-tight">
+          <div>
+            <p class="eyebrow">חוזק</p>
+            <h2>חוזק לפי קבוצת שרירים</h2>
+            <p id="muscleMapSubtitle" class="section-subtitle">הגרף מחושב אוטומטית לפי המשקלים והביצועים שלך.</p>
+          </div>
+        </div>
+        <div id="muscleRadarChart" class="muscle-radar-chart"></div>
+        <div id="muscleMapChips" class="detail-chips"></div>
       </section>
     </aside>
     <aside id="calculatorsView" class="nutrition-sidebar hidden">
