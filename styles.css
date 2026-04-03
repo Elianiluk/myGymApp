@@ -125,6 +125,16 @@ a {
   position: static;
 }
 
+.goals-screen {
+  display: grid;
+  gap: 18px;
+}
+
+.calculators-screen {
+  display: grid;
+  gap: 18px;
+}
+
 .brand-card,
 .panel,
 .hero-card,
@@ -144,7 +154,7 @@ a {
 .view-switch {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
@@ -800,6 +810,12 @@ a {
   padding-right: 16px;
 }
 
+.goals-panel .workout-details-preview .panel-heading,
+.goals-panel .workout-details-preview .detail-chips {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
 .workout-details-preview {
   width: 100%;
   padding: 0;
@@ -830,6 +846,113 @@ a {
 .workout-details-body {
   display: grid;
   gap: 10px;
+}
+
+.goals-section {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(147, 164, 194, 0.12);
+}
+
+.goals-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.exercise-goals-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.calculator-picker,
+.calculator-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.calculator-panels {
+  display: grid;
+  gap: 14px;
+}
+
+.calculator-card {
+  padding: 18px;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(122, 201, 255, 0.03)),
+    rgba(14, 26, 46, 0.9);
+  border: 1px solid rgba(147, 164, 194, 0.14);
+}
+
+.calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.calculator-result-card {
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(147, 164, 194, 0.12);
+}
+
+.calculator-result-card strong {
+  display: block;
+  font-family: "Rubik", sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+
+.calculator-picker-btn {
+  min-height: 88px;
+}
+
+.goal-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 290px);
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(147, 164, 194, 0.12);
+}
+
+.goal-item strong {
+  display: block;
+}
+
+.goal-item small {
+  color: var(--muted);
+}
+
+.goal-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.goal-input-group {
+  display: grid;
+  gap: 6px;
+}
+
+.goal-input-group .label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.current-goal-weight-input[readonly] {
+  color: rgba(244, 247, 251, 0.86);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(147, 164, 194, 0.16);
+  cursor: default;
 }
 
 .exercise-card {
@@ -1026,7 +1149,9 @@ a {
   .app-shell,
   .editor-grid,
   .food-entry-grid,
-  .food-item-edit-grid {
+  .food-item-edit-grid,
+  .goals-grid,
+  .calculator-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1049,6 +1174,14 @@ a {
   .workout-week-nav {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .goal-item {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-inputs {
+    grid-template-columns: 1fr;
   }
 
   .workout-week-header-actions {

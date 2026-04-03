@@ -24,6 +24,8 @@
       <div class="view-switch">
         <button id="showWorkoutViewBtn" class="ghost-btn view-switch-btn" type="button">אימונים</button>
         <button id="showNutritionViewBtn" class="ghost-btn view-switch-btn" type="button">תזונה</button>
+        <button id="showGoalsViewBtn" class="ghost-btn view-switch-btn" type="button">יעדים</button>
+        <button id="showCalculatorsViewBtn" class="ghost-btn view-switch-btn" type="button">מחשבונים</button>
       </div>
     </div>
   </header>
@@ -266,6 +268,191 @@
             <button id="saveNutritionBtn" class="ghost-btn" type="button">שמור הערות ליום</button>
           </div>
         </article>
+      </section>
+    </aside>
+    <aside id="goalsView" class="nutrition-sidebar hidden">
+      <section class="nutrition-board side-board goals-screen">
+        <div class="panel-heading panel-heading-tight">
+          <div>
+            <p class="eyebrow">יעדים</p>
+            <h2>יעדי תזונה ואימונים</h2>
+            <p id="goalsSubtitle" class="section-subtitle">מגדירים כאן יעדי תזונה ויעדי משקל לכל תרגיל.</p>
+          </div>
+          <div id="goalsChips" class="detail-chips"></div>
+        </div>
+        <div class="goals-section">
+          <strong>יעדי תזונה</strong>
+          <div class="goals-grid">
+            <label>
+              <span class="label">יעד קלוריות יומי</span>
+              <input id="goalsDailyCaloriesTarget" class="text-input" type="number" min="0" step="1" placeholder="למשל: 2400">
+            </label>
+            <label>
+              <span class="label">יעד חלבון יומי</span>
+              <input id="goalsDailyProteinTarget" class="text-input" type="number" min="0" step="1" placeholder="למשל: 160">
+            </label>
+          </div>
+        </div>
+        <div class="goals-section">
+          <strong>יעדי תרגילים</strong>
+          <div id="exerciseGoalsList" class="exercise-goals-list"></div>
+        </div>
+        <div class="nutrition-actions">
+          <button id="saveGoalsBtn" class="ghost-btn" type="button">שמור יעדים</button>
+        </div>
+      </section>
+    </aside>
+    <aside id="calculatorsView" class="nutrition-sidebar hidden">
+      <section class="nutrition-board side-board calculators-screen">
+        <div class="panel-heading panel-heading-tight">
+          <div>
+            <p class="eyebrow">מחשבונים</p>
+            <h2>כלי חישוב לאימונים ותזונה</h2>
+            <p id="calculatorsSubtitle" class="section-subtitle">בחר מחשבון כדי לפתוח אותו, לחשב, ואז לעבור לאחר.</p>
+          </div>
+          <div id="calculatorsChips" class="detail-chips"></div>
+        </div>
+        <div id="calculatorPicker" class="calculator-picker"></div>
+        <div id="calculatorPanels" class="calculator-panels">
+          <article id="bmiCalculator" class="calculator-card hidden">
+            <div class="panel-heading panel-heading-tight">
+              <div>
+                <strong>BMI</strong>
+                <p class="section-subtitle">יחס בין משקל לגובה לפי הנתונים שלך.</p>
+              </div>
+              <button class="ghost-btn close-calculator-btn" data-calculator-close="bmi" type="button">סגור</button>
+            </div>
+            <div class="calculator-grid">
+              <label>
+                <span class="label">משקל (ק"ג)</span>
+                <input id="bmiWeight" class="text-input" type="number" min="0" step="0.1" placeholder="למשל: 78.5">
+              </label>
+              <label>
+                <span class="label">גובה (ס"מ)</span>
+                <input id="bmiHeight" class="text-input" type="number" min="0" step="1" placeholder="למשל: 178">
+              </label>
+            </div>
+            <div class="calculator-result-card">
+              <strong id="bmiResultValue">-</strong>
+              <small id="bmiResultText">הזן משקל וגובה כדי לחשב BMI.</small>
+            </div>
+          </article>
+
+          <article id="proteinCalculator" class="calculator-card hidden">
+            <div class="panel-heading panel-heading-tight">
+              <div>
+                <strong>חלבון לעלייה במסת שריר</strong>
+                <p class="section-subtitle">טווח מומלץ של 1.6-2.2 גרם חלבון לכל ק"ג משקל גוף.</p>
+              </div>
+              <button class="ghost-btn close-calculator-btn" data-calculator-close="protein" type="button">סגור</button>
+            </div>
+            <div class="calculator-grid">
+              <label>
+                <span class="label">משקל גוף (ק"ג)</span>
+                <input id="proteinWeight" class="text-input" type="number" min="0" step="0.1" placeholder="למשל: 78.5">
+              </label>
+            </div>
+            <div class="calculator-result-grid">
+              <div class="calculator-result-card">
+                <strong id="proteinMinValue">-</strong>
+                <small>מינימום יומי</small>
+              </div>
+              <div class="calculator-result-card">
+                <strong id="proteinMaxValue">-</strong>
+                <small>מקסימום יומי</small>
+              </div>
+            </div>
+            <div id="proteinResultText" class="target-status-card">הזן משקל כדי לקבל טווח יומי מומלץ.</div>
+          </article>
+
+          <article id="oneRmCalculator" class="calculator-card hidden">
+            <div class="panel-heading panel-heading-tight">
+              <div>
+                <strong>1RM</strong>
+                <p class="section-subtitle">הערכה למשקל המקסימלי שתוכל להרים לחזרה אחת.</p>
+              </div>
+              <button class="ghost-btn close-calculator-btn" data-calculator-close="oneRm" type="button">סגור</button>
+            </div>
+            <div class="calculator-grid">
+              <label>
+                <span class="label">משקל שאתה מרים עכשיו (ק"ג)</span>
+                <input id="oneRmWeight" class="text-input" type="number" min="0" step="0.5" placeholder="למשל: 80">
+              </label>
+              <label>
+                <span class="label">מספר חזרות</span>
+                <input id="oneRmReps" class="text-input" type="number" min="1" step="1" placeholder="למשל: 6">
+              </label>
+            </div>
+            <div class="calculator-result-card">
+              <strong id="oneRmResultValue">-</strong>
+              <small id="oneRmResultText">הזן משקל וחזרות כדי לחשב 1RM משוער.</small>
+            </div>
+          </article>
+
+          <article id="caloriesCalculator" class="calculator-card hidden">
+            <div class="panel-heading panel-heading-tight">
+              <div>
+                <strong>מחשבון קלוריות</strong>
+                <p class="section-subtitle">הערכת BMR, קלוריות תחזוקה ויעד יומי לפי המטרה שלך.</p>
+              </div>
+              <button class="ghost-btn close-calculator-btn" data-calculator-close="calories" type="button">סגור</button>
+            </div>
+            <div class="calculator-grid">
+              <label>
+                <span class="label">משקל (ק"ג)</span>
+                <input id="caloriesWeight" class="text-input" type="number" min="0" step="0.1" placeholder="למשל: 78.5">
+              </label>
+              <label>
+                <span class="label">גובה (ס"מ)</span>
+                <input id="caloriesHeight" class="text-input" type="number" min="0" step="1" placeholder="למשל: 178">
+              </label>
+              <label>
+                <span class="label">גיל</span>
+                <input id="caloriesAge" class="text-input" type="number" min="0" step="1" placeholder="למשל: 26">
+              </label>
+              <label>
+                <span class="label">מין</span>
+                <select id="caloriesSex" class="text-input">
+                  <option value="male">גבר</option>
+                  <option value="female">אישה</option>
+                </select>
+              </label>
+              <label>
+                <span class="label">רמת פעילות</span>
+                <select id="caloriesActivity" class="text-input">
+                  <option value="1.2">מעט או ללא פעילות</option>
+                  <option value="1.375">פעילות קלה</option>
+                  <option value="1.55">פעילות בינונית</option>
+                  <option value="1.725">פעילות גבוהה</option>
+                  <option value="1.9">פעילות גבוהה מאוד</option>
+                </select>
+              </label>
+              <label>
+                <span class="label">מטרה</span>
+                <select id="caloriesGoal" class="text-input">
+                  <option value="maintain">שמירה</option>
+                  <option value="bulk">עלייה במסת שריר</option>
+                  <option value="cut">חיטוב</option>
+                </select>
+              </label>
+            </div>
+            <div class="calculator-result-grid">
+              <div class="calculator-result-card">
+                <strong id="caloriesBmrValue">-</strong>
+                <small>BMR</small>
+              </div>
+              <div class="calculator-result-card">
+                <strong id="caloriesMaintenanceValue">-</strong>
+                <small>תחזוקה</small>
+              </div>
+              <div class="calculator-result-card">
+                <strong id="caloriesTargetValue">-</strong>
+                <small>יעד יומי</small>
+              </div>
+            </div>
+            <div id="caloriesResultText" class="target-status-card">הזן את הנתונים כדי לקבל הערכת קלוריות יומית.</div>
+          </article>
+        </div>
       </section>
     </aside>
   </div>

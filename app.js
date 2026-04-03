@@ -136,6 +136,12 @@ const elements = {
   profileDailyCaloriesTarget: document.querySelector("#profileDailyCaloriesTarget"),
   profileDailyProteinTarget: document.querySelector("#profileDailyProteinTarget"),
   saveProfileBtn: document.querySelector("#saveProfileBtn"),
+  goalsSubtitle: document.querySelector("#goalsSubtitle"),
+  goalsChips: document.querySelector("#goalsChips"),
+  goalsDailyCaloriesTarget: document.querySelector("#goalsDailyCaloriesTarget"),
+  goalsDailyProteinTarget: document.querySelector("#goalsDailyProteinTarget"),
+  saveGoalsBtn: document.querySelector("#saveGoalsBtn"),
+  exerciseGoalsList: document.querySelector("#exerciseGoalsList"),
   workoutTabs: document.querySelector("#workoutTabs"),
   workoutCount: document.querySelector("#workoutCount"),
   exerciseCount: document.querySelector("#exerciseCount"),
@@ -164,8 +170,41 @@ const elements = {
   workoutWeekDetails: document.querySelector("#workoutWeekDetails"),
   showWorkoutViewBtn: document.querySelector("#showWorkoutViewBtn"),
   showNutritionViewBtn: document.querySelector("#showNutritionViewBtn"),
+  showGoalsViewBtn: document.querySelector("#showGoalsViewBtn"),
+  showCalculatorsViewBtn: document.querySelector("#showCalculatorsViewBtn"),
   workoutView: document.querySelector("#workoutView"),
   nutritionView: document.querySelector("#nutritionView"),
+  goalsView: document.querySelector("#goalsView"),
+  calculatorsView: document.querySelector("#calculatorsView"),
+  calculatorsSubtitle: document.querySelector("#calculatorsSubtitle"),
+  calculatorsChips: document.querySelector("#calculatorsChips"),
+  calculatorPicker: document.querySelector("#calculatorPicker"),
+  bmiCalculator: document.querySelector("#bmiCalculator"),
+  proteinCalculator: document.querySelector("#proteinCalculator"),
+  oneRmCalculator: document.querySelector("#oneRmCalculator"),
+  caloriesCalculator: document.querySelector("#caloriesCalculator"),
+  bmiWeight: document.querySelector("#bmiWeight"),
+  bmiHeight: document.querySelector("#bmiHeight"),
+  bmiResultValue: document.querySelector("#bmiResultValue"),
+  bmiResultText: document.querySelector("#bmiResultText"),
+  proteinWeight: document.querySelector("#proteinWeight"),
+  proteinMinValue: document.querySelector("#proteinMinValue"),
+  proteinMaxValue: document.querySelector("#proteinMaxValue"),
+  proteinResultText: document.querySelector("#proteinResultText"),
+  oneRmWeight: document.querySelector("#oneRmWeight"),
+  oneRmReps: document.querySelector("#oneRmReps"),
+  oneRmResultValue: document.querySelector("#oneRmResultValue"),
+  oneRmResultText: document.querySelector("#oneRmResultText"),
+  caloriesWeight: document.querySelector("#caloriesWeight"),
+  caloriesHeight: document.querySelector("#caloriesHeight"),
+  caloriesAge: document.querySelector("#caloriesAge"),
+  caloriesSex: document.querySelector("#caloriesSex"),
+  caloriesActivity: document.querySelector("#caloriesActivity"),
+  caloriesGoal: document.querySelector("#caloriesGoal"),
+  caloriesBmrValue: document.querySelector("#caloriesBmrValue"),
+  caloriesMaintenanceValue: document.querySelector("#caloriesMaintenanceValue"),
+  caloriesTargetValue: document.querySelector("#caloriesTargetValue"),
+  caloriesResultText: document.querySelector("#caloriesResultText"),
   prevMonthBtn: document.querySelector("#prevMonthBtn"),
   nextMonthBtn: document.querySelector("#nextMonthBtn"),
   calendarMonthLabel: document.querySelector("#calendarMonthLabel"),
@@ -256,6 +295,25 @@ function bindEvents() {
     renderStats();
     pulseButton(elements.saveProfileBtn, "נשמר");
   });
+  if (elements.goalsDailyCaloriesTarget) elements.goalsDailyCaloriesTarget.addEventListener("input", (event) => {
+    state.profile.dailyCaloriesTarget = event.target.value;
+    persist();
+    renderGoalsSummary();
+    renderCalendar();
+    renderNutritionForm();
+  });
+  if (elements.goalsDailyProteinTarget) elements.goalsDailyProteinTarget.addEventListener("input", (event) => {
+    state.profile.dailyProteinTarget = event.target.value;
+    persist();
+    renderGoalsSummary();
+    renderCalendar();
+    renderNutritionForm();
+  });
+  if (elements.saveGoalsBtn) elements.saveGoalsBtn.addEventListener("click", () => {
+    persist();
+    renderGoalsPanel();
+    pulseButton(elements.saveGoalsBtn, "נשמר");
+  });
   elements.librarySearch.addEventListener("input", renderLibrary);
   elements.closeExercisePickerBtn.addEventListener("click", closeExercisePicker);
   elements.addBlankExerciseBtn.addEventListener("click", () => {
@@ -268,6 +326,26 @@ function bindEvents() {
   });
   elements.showWorkoutViewBtn.addEventListener("click", () => setCurrentView("workouts"));
   elements.showNutritionViewBtn.addEventListener("click", () => setCurrentView("nutrition"));
+  elements.showGoalsViewBtn.addEventListener("click", () => setCurrentView("goals"));
+  if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.addEventListener("click", () => setCurrentView("calculators"));
+  bindCalculatorInput(elements.bmiWeight, "bmi", "weight");
+  bindCalculatorInput(elements.bmiHeight, "bmi", "height");
+  bindCalculatorInput(elements.proteinWeight, "protein", "weight");
+  bindCalculatorInput(elements.oneRmWeight, "oneRm", "weight");
+  bindCalculatorInput(elements.oneRmReps, "oneRm", "reps");
+  bindCalculatorInput(elements.caloriesWeight, "calories", "weight");
+  bindCalculatorInput(elements.caloriesHeight, "calories", "height");
+  bindCalculatorInput(elements.caloriesAge, "calories", "age");
+  bindCalculatorInput(elements.caloriesSex, "calories", "sex", "change");
+  bindCalculatorInput(elements.caloriesActivity, "calories", "activity", "change");
+  bindCalculatorInput(elements.caloriesGoal, "calories", "goal", "change");
+  document.querySelectorAll("[data-calculator-close]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.calculators.active = null;
+      persist();
+      renderCalculators();
+    });
+  });
   elements.prevMonthBtn.addEventListener("click", () => {
     state.selectedNutritionDate = shiftIsoDate(state.selectedNutritionDate, -7);
     state.calendarMonth = formatMonthKey(new Date(`${state.selectedNutritionDate}T00:00:00`));
@@ -353,6 +431,8 @@ function bindEvents() {
 function render() {
   renderCurrentView();
   renderStats();
+  renderGoalsPanel();
+  renderCalculators();
   renderTabs();
   renderLibrary();
   renderHero();
@@ -363,19 +443,29 @@ function render() {
 }
 
 function renderCurrentView() {
-  const isWorkoutView = state.currentView !== "nutrition";
+  const isWorkoutView = state.currentView === "workouts";
+  const isNutritionView = state.currentView === "nutrition";
+  const isGoalsView = state.currentView === "goals";
+  const isCalculatorsView = state.currentView === "calculators";
   elements.workoutView.classList.toggle("hidden", !isWorkoutView);
-  elements.nutritionView.classList.toggle("hidden", isWorkoutView);
-  elements.nutritionView.classList.toggle("full-view", !isWorkoutView);
+  elements.nutritionView.classList.toggle("hidden", !isNutritionView);
+  elements.goalsView.classList.toggle("hidden", !isGoalsView);
+  elements.calculatorsView.classList.toggle("hidden", !isCalculatorsView);
+  elements.nutritionView.classList.toggle("full-view", isNutritionView);
+  elements.goalsView.classList.toggle("full-view", isGoalsView);
+  elements.calculatorsView.classList.toggle("full-view", isCalculatorsView);
   document.querySelector(".sidebar").classList.toggle("hidden", !isWorkoutView);
   elements.showWorkoutViewBtn.classList.toggle("active", isWorkoutView);
-  elements.showNutritionViewBtn.classList.toggle("active", !isWorkoutView);
+  elements.showNutritionViewBtn.classList.toggle("active", isNutritionView);
+  elements.showGoalsViewBtn.classList.toggle("active", isGoalsView);
+  if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.classList.toggle("active", isCalculatorsView);
 }
 
 function setCurrentView(view) {
   state.currentView = view;
   persist();
   renderCurrentView();
+  renderCalculators();
 }
 
 function renderStats() {
@@ -401,6 +491,287 @@ function renderStats() {
   elements.workoutCount.textContent = state.workouts.length;
   elements.exerciseCount.textContent = state.workouts.reduce((sum, workout) => sum + workout.exercises.length, 0);
   elements.sessionCount.textContent = state.workouts.reduce((sum, workout) => sum + workout.exercises.reduce((inner, exercise) => inner + exercise.history.length, 0), 0);
+}
+
+function renderGoalsPanel() {
+  renderGoalsSummary();
+  if (elements.goalsDailyCaloriesTarget) elements.goalsDailyCaloriesTarget.value = state.profile.dailyCaloriesTarget || "";
+  if (elements.goalsDailyProteinTarget) elements.goalsDailyProteinTarget.value = state.profile.dailyProteinTarget || "";
+  renderExerciseGoalsList();
+}
+
+function renderCalculators() {
+  if (!elements.calculatorPicker) return;
+  syncCalculatorsWithProfile();
+  renderCalculatorPicker();
+  renderBmiCalculator();
+  renderProteinCalculator();
+  renderOneRmCalculator();
+  renderCaloriesCalculator();
+  renderCalculatorSummary();
+}
+
+function renderCalculatorPicker() {
+  elements.calculatorPicker.innerHTML = "";
+  getCalculatorDefinitions().forEach((calculator) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `workout-tab calculator-picker-btn ${state.calculators.active === calculator.id ? "active" : ""}`;
+    button.innerHTML = `<strong>${calculator.title}</strong><small>${calculator.subtitle}</small>`;
+    button.addEventListener("click", () => {
+      state.calculators.active = state.calculators.active === calculator.id ? null : calculator.id;
+      persist();
+      renderCalculators();
+    });
+    elements.calculatorPicker.appendChild(button);
+  });
+}
+
+function renderCalculatorSummary() {
+  if (elements.calculatorsSubtitle) {
+    elements.calculatorsSubtitle.textContent = state.calculators.active
+      ? `פתוח עכשיו: ${getCalculatorDefinitions().find((item) => item.id === state.calculators.active)?.title || "מחשבון"}`
+      : "בחר מחשבון כדי לפתוח אותו, לחשב, ואז לעבור לאחר.";
+  }
+  if (!elements.calculatorsChips) return;
+  elements.calculatorsChips.innerHTML = "";
+  const chips = [
+    `BMI: ${getBmiChipText()}`,
+    `חלבון: ${getProteinChipText()}`,
+    `1RM: ${getOneRmChipText()}`,
+    `קלוריות: ${getCaloriesChipText()}`,
+  ];
+  chips.forEach((text) => {
+    const chip = document.createElement("span");
+    chip.className = "detail-chip";
+    chip.textContent = text;
+    elements.calculatorsChips.appendChild(chip);
+  });
+}
+
+function renderBmiCalculator() {
+  const calculator = state.calculators.bmi;
+  if (elements.bmiCalculator) elements.bmiCalculator.classList.toggle("hidden", state.calculators.active !== "bmi");
+  if (elements.bmiWeight) elements.bmiWeight.value = calculator.weight || "";
+  if (elements.bmiHeight) elements.bmiHeight.value = calculator.height || "";
+  const result = calculateBmi(calculator.weight, calculator.height);
+  if (elements.bmiResultValue) elements.bmiResultValue.textContent = result.value;
+  if (elements.bmiResultText) elements.bmiResultText.textContent = result.text;
+}
+
+function renderProteinCalculator() {
+  const calculator = state.calculators.protein;
+  if (elements.proteinCalculator) elements.proteinCalculator.classList.toggle("hidden", state.calculators.active !== "protein");
+  if (elements.proteinWeight) elements.proteinWeight.value = calculator.weight || "";
+  const result = calculateProteinRange(calculator.weight);
+  if (elements.proteinMinValue) elements.proteinMinValue.textContent = result.min;
+  if (elements.proteinMaxValue) elements.proteinMaxValue.textContent = result.max;
+  if (elements.proteinResultText) elements.proteinResultText.textContent = result.text;
+}
+
+function renderOneRmCalculator() {
+  const calculator = state.calculators.oneRm;
+  if (elements.oneRmCalculator) elements.oneRmCalculator.classList.toggle("hidden", state.calculators.active !== "oneRm");
+  if (elements.oneRmWeight) elements.oneRmWeight.value = calculator.weight || "";
+  if (elements.oneRmReps) elements.oneRmReps.value = calculator.reps || "";
+  const result = calculateOneRm(calculator.weight, calculator.reps);
+  if (elements.oneRmResultValue) elements.oneRmResultValue.textContent = result.value;
+  if (elements.oneRmResultText) elements.oneRmResultText.textContent = result.text;
+}
+
+function renderCaloriesCalculator() {
+  const calculator = state.calculators.calories;
+  if (elements.caloriesCalculator) elements.caloriesCalculator.classList.toggle("hidden", state.calculators.active !== "calories");
+  if (elements.caloriesWeight) elements.caloriesWeight.value = calculator.weight || "";
+  if (elements.caloriesHeight) elements.caloriesHeight.value = calculator.height || "";
+  if (elements.caloriesAge) elements.caloriesAge.value = calculator.age || "";
+  if (elements.caloriesSex) elements.caloriesSex.value = calculator.sex || "male";
+  if (elements.caloriesActivity) elements.caloriesActivity.value = calculator.activity || "1.55";
+  if (elements.caloriesGoal) elements.caloriesGoal.value = calculator.goal || "maintain";
+  const result = calculateCalories(calculator);
+  if (elements.caloriesBmrValue) elements.caloriesBmrValue.textContent = result.bmr;
+  if (elements.caloriesMaintenanceValue) elements.caloriesMaintenanceValue.textContent = result.maintenance;
+  if (elements.caloriesTargetValue) elements.caloriesTargetValue.textContent = result.target;
+  if (elements.caloriesResultText) elements.caloriesResultText.textContent = result.text;
+}
+
+function renderGoalsSummary() {
+  const allExercises = getAllExercises();
+  const goalsCount = allExercises.filter((exercise) => exercise.goalWeight).length;
+  if (elements.goalsSubtitle) {
+    elements.goalsSubtitle.textContent = goalsCount
+      ? `${goalsCount} תרגילים עם יעד משקל הוגדרו.`
+      : "לחץ כדי לערוך יעדי תזונה ויעדי משקל לתרגילים.";
+  }
+  if (!elements.goalsChips) return;
+  elements.goalsChips.innerHTML = "";
+  [
+    `קלוריות: ${state.profile.dailyCaloriesTarget || "-"}`,
+    `חלבון: ${state.profile.dailyProteinTarget || "-"}`,
+    `יעדי משקל: ${goalsCount}`,
+  ].forEach((text) => {
+    const chip = document.createElement("span");
+    chip.className = "detail-chip";
+    chip.textContent = text;
+    elements.goalsChips.appendChild(chip);
+  });
+}
+
+function renderExerciseGoalsList() {
+  if (!elements.exerciseGoalsList) return;
+  elements.exerciseGoalsList.innerHTML = "";
+  const exercises = getAllExercises();
+  if (!exercises.length) {
+    const empty = document.createElement("div");
+    empty.className = "history-item";
+    empty.innerHTML = "<strong>עדיין אין תרגילים</strong><small>תוסיף תרגילים לאימונים ואז תוכל להציב יעד משקל.</small>";
+    elements.exerciseGoalsList.appendChild(empty);
+    return;
+  }
+  exercises.forEach((exercise) => {
+    const item = document.createElement("label");
+    item.className = "goal-item";
+    item.innerHTML = `
+      <div>
+        <strong>${escapeHtml(exercise.name || "תרגיל ללא שם")}</strong>
+        <small>${escapeHtml(exercise.englishName || exercise.group || "")}</small>
+      </div>
+      <div class="goal-inputs">
+        <label class="goal-input-group">
+          <span class="label">משקל נוכחי</span>
+          <input class="text-input current-goal-weight-input" type="text" value="${escapeAttribute(exercise.weight || "")}" placeholder="אין עדיין משקל" readonly>
+        </label>
+        <label class="goal-input-group">
+          <span class="label">משקל יעד</span>
+          <input class="text-input goal-weight-input" type="number" min="0" step="0.5" placeholder="יעד בק\"ג" value="${escapeAttribute(exercise.goalWeight || "")}">
+        </label>
+      </div>
+    `;
+    item.querySelector(".goal-weight-input").addEventListener("input", (event) => {
+      exercise.goalWeight = event.target.value;
+      persist();
+      renderGoalsSummary();
+    });
+    elements.exerciseGoalsList.appendChild(item);
+  });
+}
+
+function getAllExercises() {
+  return state.workouts.flatMap((workout) => workout.exercises);
+}
+
+function getCalculatorDefinitions() {
+  return [
+    { id: "bmi", title: "BMI", subtitle: "יחס משקל וגובה" },
+    { id: "protein", title: "חלבון", subtitle: "1.6-2.2 גרם לק\"ג" },
+    { id: "oneRm", title: "1RM", subtitle: "מקסימום משוער לחזרה אחת" },
+    { id: "calories", title: "קלוריות", subtitle: "BMR, תחזוקה ויעד יומי" },
+  ];
+}
+
+function bindCalculatorInput(element, section, field, eventName = "input") {
+  if (!element) return;
+  element.addEventListener(eventName, (event) => {
+    state.calculators[section][field] = event.target.value;
+    persist();
+    renderCalculators();
+  });
+}
+
+function syncCalculatorsWithProfile() {
+  const age = getAgeFromBirthDate(state.profile.birthDate);
+  state.calculators.bmi.weight = state.calculators.bmi.weight || state.profile.weight || "";
+  state.calculators.bmi.height = state.calculators.bmi.height || state.profile.height || "";
+  state.calculators.protein.weight = state.calculators.protein.weight || state.profile.weight || "";
+  state.calculators.calories.weight = state.calculators.calories.weight || state.profile.weight || "";
+  state.calculators.calories.height = state.calculators.calories.height || state.profile.height || "";
+  state.calculators.calories.age = state.calculators.calories.age || age || "";
+}
+
+function calculateBmi(weightValue, heightValue) {
+  const weight = Number(weightValue);
+  const height = Number(heightValue);
+  if (!weight || !height) {
+    return { value: "-", text: "הזן משקל וגובה כדי לחשב BMI." };
+  }
+  const bmi = weight / ((height / 100) ** 2);
+  return {
+    value: bmi.toFixed(1),
+    text: `הטווח שלך כרגע הוא ${getBmiCategory(bmi)}.`,
+  };
+}
+
+function getBmiCategory(bmi) {
+  if (bmi < 18.5) return "תת משקל";
+  if (bmi < 25) return "משקל תקין";
+  if (bmi < 30) return "עודף משקל";
+  return "השמנה";
+}
+
+function calculateProteinRange(weightValue) {
+  const weight = Number(weightValue);
+  if (!weight) {
+    return { min: "-", max: "-", text: "הזן משקל כדי לקבל טווח יומי מומלץ." };
+  }
+  const min = weight * 1.6;
+  const max = weight * 2.2;
+  return {
+    min: `${min.toFixed(0)} גרם`,
+    max: `${max.toFixed(0)} גרם`,
+    text: `כדי לתמוך בעלייה במסת שריר, כוון בערך ל-${min.toFixed(0)} עד ${max.toFixed(0)} גרם חלבון ביום.`,
+  };
+}
+
+function calculateOneRm(weightValue, repsValue) {
+  const weight = Number(weightValue);
+  const reps = Number(repsValue);
+  if (!weight || !reps) {
+    return { value: "-", text: "הזן משקל וחזרות כדי לחשב 1RM משוער." };
+  }
+  const oneRm = reps <= 1 ? weight : weight * (1 + reps / 30);
+  return {
+    value: `${oneRm.toFixed(1)} ק\"ג`,
+    text: `הערכה לפי נוסחת Epley. זהו חישוב משוער, לא תחליף לבדיקה אמיתית עם בטיחות.`,
+  };
+}
+
+function calculateCalories(calculator) {
+  const weight = Number(calculator.weight);
+  const height = Number(calculator.height);
+  const age = Number(calculator.age);
+  const activity = Number(calculator.activity || 1.55);
+  if (!weight || !height || !age) {
+    return { bmr: "-", maintenance: "-", target: "-", text: "הזן את הנתונים כדי לקבל הערכת קלוריות יומית." };
+  }
+  const sexAdjustment = calculator.sex === "female" ? -161 : 5;
+  const bmr = (10 * weight) + (6.25 * height) - (5 * age) + sexAdjustment;
+  const maintenance = bmr * activity;
+  const goalAdjustment = calculator.goal === "bulk" ? 250 : calculator.goal === "cut" ? -300 : 0;
+  const target = maintenance + goalAdjustment;
+  const goalText = calculator.goal === "bulk" ? "לעלייה במסת שריר" : calculator.goal === "cut" ? "לחיטוב" : "לשמירה";
+  return {
+    bmr: `${Math.round(bmr)} קק\"ל`,
+    maintenance: `${Math.round(maintenance)} קק\"ל`,
+    target: `${Math.round(target)} קק\"ל`,
+    text: `לפי הנתונים שלך, יעד יומי משוער ${goalText} הוא בערך ${Math.round(target)} קלוריות.`,
+  };
+}
+
+function getBmiChipText() {
+  return calculateBmi(state.calculators.bmi.weight, state.calculators.bmi.height).value;
+}
+
+function getProteinChipText() {
+  const result = calculateProteinRange(state.calculators.protein.weight);
+  return result.min === "-" ? "-" : `${result.min} - ${result.max}`;
+}
+
+function getOneRmChipText() {
+  return calculateOneRm(state.calculators.oneRm.weight, state.calculators.oneRm.reps).value;
+}
+
+function getCaloriesChipText() {
+  return calculateCalories(state.calculators.calories).target;
 }
 
 function renderTabs() {
@@ -1021,7 +1392,9 @@ function renderEditor() {
     bindValue(fragment, ".exercise-notes", exercise.notes, (value) => updateExercise(exercise, "notes", value));
 
     fragment.querySelector(".exercise-sets-chip").textContent = `${exercise.sets || "-"} סטים · ${exercise.reps || "-"}`;
-    fragment.querySelector(".exercise-weight-chip").textContent = `${exercise.weight || "-"} ק"ג יעד`;
+    fragment.querySelector(".exercise-weight-chip").textContent = exercise.goalWeight
+      ? `${exercise.weight || "-"} ק"ג נוכחי · יעד ${exercise.goalWeight} ק"ג`
+      : `${exercise.weight || "-"} ק"ג יעד`;
     fragment.querySelector(".exercise-rest-chip").textContent = `${exercise.rest || "-"} שנ' מנוחה`;
 
     const isEditing = state.editingExerciseId === exercise.id;
@@ -1224,6 +1597,7 @@ function loadState() {
       workoutWeekDate: parsed.workoutWeekDate || formatIsoDate(today),
       selectedWorkoutLogDate: parsed.selectedWorkoutLogDate || formatIsoDate(today),
       currentView: parsed.currentView || "workouts",
+      calculators: normalizeCalculators(parsed.calculators, parsed.profile),
       editingExerciseId: parsed.editingExerciseId || null,
       editingWorkoutDetails: Boolean(parsed.editingWorkoutDetails),
       editingFoodItemId: parsed.editingFoodItemId || null,
@@ -1257,6 +1631,7 @@ function buildDefaultState() {
     workoutWeekDate: formatIsoDate(today),
     selectedWorkoutLogDate: formatIsoDate(today),
     currentView: "workouts",
+    calculators: normalizeCalculators({}, { weight: "", height: "", birthDate: "" }),
     editingExerciseId: null,
     editingWorkoutDetails: false,
     editingFoodItemId: null,
@@ -1308,6 +1683,32 @@ function normalizeWorkout(workout) {
   };
 }
 
+function normalizeCalculators(calculators, profile) {
+  const age = getAgeFromBirthDate(profile?.birthDate || "");
+  return {
+    active: calculators?.active || null,
+    bmi: {
+      weight: calculators?.bmi?.weight || profile?.weight || "",
+      height: calculators?.bmi?.height || profile?.height || "",
+    },
+    protein: {
+      weight: calculators?.protein?.weight || profile?.weight || "",
+    },
+    oneRm: {
+      weight: calculators?.oneRm?.weight || "",
+      reps: calculators?.oneRm?.reps || "",
+    },
+    calories: {
+      weight: calculators?.calories?.weight || profile?.weight || "",
+      height: calculators?.calories?.height || profile?.height || "",
+      age: calculators?.calories?.age || age || "",
+      sex: calculators?.calories?.sex || "male",
+      activity: calculators?.calories?.activity || "1.55",
+      goal: calculators?.calories?.goal || "maintain",
+    },
+  };
+}
+
 function normalizeExercise(exercise) {
   const matched = EXERCISE_LIBRARY.find((item) => item.name === exercise.name) || {};
   return createExercise({
@@ -1351,6 +1752,7 @@ function createExercise(data) {
     sets: data.sets ?? 3,
     reps: data.reps || "10",
     weight: data.weight ?? "",
+    goalWeight: data.goalWeight ?? "",
     rest: data.rest ?? 60,
     notes: data.notes || "",
     imageUrl: data.imageUrl || "",
