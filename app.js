@@ -1,4 +1,20 @@
 ﻿const STORAGE_KEY = "gymflow-workout-planner";
+const GEMINI_API_KEY = "AIzaSyA0Qk81De_-Sp6Ih9FJD3B-hsCsxT-8eSY";
+const GEMINI_API_NOTE = "הדבק את Gemini API key שלך בתחילת app.js בתוך GEMINI_API_KEY";
+const OPENAI_API_KEY = "";
+const ANTHROPIC_API_KEY = "";
+const OPENAI_API_NOTE = "הדבק את OpenAI API key שלך בתחילת app.js בתוך OPENAI_API_KEY";
+const ANTHROPIC_API_NOTE = "הדבק את Anthropic API key שלך בתחילת app.js בתוך ANTHROPIC_API_KEY";
+const AI_PROVIDER_LABELS = {
+  gemini: "Gemini",
+  openai: "OpenAI",
+  anthropic: "Claude",
+};
+const AI_CHAT_MODELS = {
+  gemini: ["gemini-2.5-flash", "gemini-2.5-pro"],
+  openai: ["gpt-5-mini", "gpt-5"],
+  anthropic: ["claude-3-5-haiku-latest", "claude-sonnet-4-20250514"],
+};
 
 const EXERCISE_LIBRARY = [
   presetExercise("בנץ' פרס", "חזה", "מוט", "בינוני", 4, "8-10", 60, 90, "לחיצה קלאסית לבניית חזה", "https://www.youtube.com/results?search_query=bench+press+form"),
@@ -177,12 +193,14 @@ const elements = {
   showGoalsViewBtn: document.querySelector("#showGoalsViewBtn"),
   showStrengthViewBtn: document.querySelector("#showStrengthViewBtn"),
   showTimerViewBtn: document.querySelector("#showTimerViewBtn"),
+  showAiViewBtn: document.querySelector("#showAiViewBtn"),
   showCalculatorsViewBtn: document.querySelector("#showCalculatorsViewBtn"),
   workoutView: document.querySelector("#workoutView"),
   nutritionView: document.querySelector("#nutritionView"),
   goalsView: document.querySelector("#goalsView"),
   strengthView: document.querySelector("#strengthView"),
   timerView: document.querySelector("#timerView"),
+  aiView: document.querySelector("#aiView"),
   calculatorsView: document.querySelector("#calculatorsView"),
   timerSubtitle: document.querySelector("#timerSubtitle"),
   timerChips: document.querySelector("#timerChips"),
@@ -193,6 +211,22 @@ const elements = {
   pauseTimerBtn: document.querySelector("#pauseTimerBtn"),
   resetTimerBtn: document.querySelector("#resetTimerBtn"),
   timerStatus: document.querySelector("#timerStatus"),
+  aiSubtitle: document.querySelector("#aiSubtitle"),
+  aiChips: document.querySelector("#aiChips"),
+  aiStatus: document.querySelector("#aiStatus"),
+  aiProvider: document.querySelector("#aiProvider"),
+  aiModel: document.querySelector("#aiModel"),
+  aiEditMode: document.querySelector("#aiEditMode"),
+  aiMessages: document.querySelector("#aiMessages"),
+  aiPrompt: document.querySelector("#aiPrompt"),
+  sendAiBtn: document.querySelector("#sendAiBtn"),
+  clearAiChatBtn: document.querySelector("#clearAiChatBtn"),
+  geminiImageModel: document.querySelector("#geminiImageModel"),
+  aiImagePrompt: document.querySelector("#aiImagePrompt"),
+  generateAiImageBtn: document.querySelector("#generateAiImageBtn"),
+  clearAiImagesBtn: document.querySelector("#clearAiImagesBtn"),
+  aiImageStatus: document.querySelector("#aiImageStatus"),
+  aiImageGallery: document.querySelector("#aiImageGallery"),
   calculatorsSubtitle: document.querySelector("#calculatorsSubtitle"),
   calculatorsChips: document.querySelector("#calculatorsChips"),
   calculatorPicker: document.querySelector("#calculatorPicker"),
@@ -346,6 +380,7 @@ function bindEvents() {
   elements.showGoalsViewBtn.addEventListener("click", () => setCurrentView("goals"));
   if (elements.showStrengthViewBtn) elements.showStrengthViewBtn.addEventListener("click", () => setCurrentView("strength"));
   if (elements.showTimerViewBtn) elements.showTimerViewBtn.addEventListener("click", () => setCurrentView("timer"));
+  if (elements.showAiViewBtn) elements.showAiViewBtn.addEventListener("click", () => setCurrentView("ai"));
   if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.addEventListener("click", () => setCurrentView("calculators"));
   if (elements.timerCustomSeconds) elements.timerCustomSeconds.addEventListener("input", (event) => {
     const value = Math.max(Number(event.target.value || 0), 0);
@@ -360,6 +395,44 @@ function bindEvents() {
   if (elements.startTimerBtn) elements.startTimerBtn.addEventListener("click", startTimer);
   if (elements.pauseTimerBtn) elements.pauseTimerBtn.addEventListener("click", pauseTimer);
   if (elements.resetTimerBtn) elements.resetTimerBtn.addEventListener("click", resetTimer);
+  if (elements.aiProvider) elements.aiProvider.addEventListener("change", (event) => {
+    state.ai.provider = event.target.value;
+    persist();
+    renderAiChat();
+  });
+  if (elements.aiModel) elements.aiModel.addEventListener("change", (event) => {
+    state.ai.models[state.ai.provider] = event.target.value;
+    persist();
+    renderAiChat();
+  });
+  if (elements.aiEditMode) elements.aiEditMode.addEventListener("change", (event) => {
+    state.ai.editMode = Boolean(event.target.checked);
+    state.ai.status = state.ai.editMode
+      ? "מצב עריכה פעיל. ה-AI יכול גם לבצע שינויים באתר."
+      : "מצב עריכה כבוי. ה-AI רק קורא ועונה.";
+    state.ai.statusType = state.ai.editMode ? "success" : "";
+    persist();
+    renderAiChat();
+  });
+  if (elements.geminiImageModel) elements.geminiImageModel.addEventListener("change", (event) => {
+    state.ai.imageModel = event.target.value;
+    persist();
+    renderAiChat();
+  });
+  if (elements.sendAiBtn) elements.sendAiBtn.addEventListener("click", sendAiMessage);
+  if (elements.clearAiChatBtn) elements.clearAiChatBtn.addEventListener("click", () => {
+    state.ai.messages = [];
+    state.ai.status = "הצ'אט נוקה.";
+    persist();
+    renderAiChat();
+  });
+  if (elements.generateAiImageBtn) elements.generateAiImageBtn.addEventListener("click", generateAiImage);
+  if (elements.clearAiImagesBtn) elements.clearAiImagesBtn.addEventListener("click", () => {
+    state.ai.generatedImages = [];
+    state.ai.imageStatus = "הגלריה נוקתה.";
+    persist();
+    renderAiChat();
+  });
   bindCalculatorInput(elements.bmiWeight, "bmi", "weight");
   bindCalculatorInput(elements.bmiHeight, "bmi", "height");
   bindCalculatorInput(elements.proteinWeight, "protein", "weight");
@@ -465,6 +538,7 @@ function render() {
   renderStats();
   renderGoalsPanel();
   renderTimer();
+  renderAiChat();
   renderCalculators();
   renderTabs();
   renderLibrary();
@@ -481,17 +555,20 @@ function renderCurrentView() {
   const isGoalsView = state.currentView === "goals";
   const isStrengthView = state.currentView === "strength";
   const isTimerView = state.currentView === "timer";
+  const isAiView = state.currentView === "ai";
   const isCalculatorsView = state.currentView === "calculators";
   elements.workoutView.classList.toggle("hidden", !isWorkoutView);
   elements.nutritionView.classList.toggle("hidden", !isNutritionView);
   elements.goalsView.classList.toggle("hidden", !isGoalsView);
   elements.strengthView.classList.toggle("hidden", !isStrengthView);
   elements.timerView.classList.toggle("hidden", !isTimerView);
+  elements.aiView.classList.toggle("hidden", !isAiView);
   elements.calculatorsView.classList.toggle("hidden", !isCalculatorsView);
   elements.nutritionView.classList.toggle("full-view", isNutritionView);
   elements.goalsView.classList.toggle("full-view", isGoalsView);
   elements.strengthView.classList.toggle("full-view", isStrengthView);
   elements.timerView.classList.toggle("full-view", isTimerView);
+  elements.aiView.classList.toggle("full-view", isAiView);
   elements.calculatorsView.classList.toggle("full-view", isCalculatorsView);
   document.querySelector(".sidebar").classList.toggle("hidden", !isWorkoutView);
   elements.showWorkoutViewBtn.classList.toggle("active", isWorkoutView);
@@ -499,6 +576,7 @@ function renderCurrentView() {
   elements.showGoalsViewBtn.classList.toggle("active", isGoalsView);
   if (elements.showStrengthViewBtn) elements.showStrengthViewBtn.classList.toggle("active", isStrengthView);
   if (elements.showTimerViewBtn) elements.showTimerViewBtn.classList.toggle("active", isTimerView);
+  if (elements.showAiViewBtn) elements.showAiViewBtn.classList.toggle("active", isAiView);
   if (elements.showCalculatorsViewBtn) elements.showCalculatorsViewBtn.classList.toggle("active", isCalculatorsView);
 }
 
@@ -507,6 +585,7 @@ function setCurrentView(view) {
   persist();
   renderCurrentView();
   renderTimer();
+  renderAiChat();
   renderCalculators();
 }
 
@@ -663,6 +742,612 @@ function formatTimer(totalSeconds) {
   const minutes = Math.floor(safe / 60);
   const seconds = safe % 60;
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function renderAiChat() {
+  if (!elements.aiMessages) return;
+  const provider = state.ai.provider || "gemini";
+  const providerLabel = AI_PROVIDER_LABELS[provider] || "AI";
+  const apiKey = getAiApiKey(provider);
+  const currentModel = getCurrentAiModel();
+  if (elements.aiProvider) elements.aiProvider.value = provider;
+  renderAiModelOptions();
+  if (elements.geminiImageModel) elements.geminiImageModel.value = state.ai.imageModel || "gemini-2.5-flash-image";
+  if (elements.aiEditMode) elements.aiEditMode.checked = Boolean(state.ai.editMode);
+  if (elements.aiStatus) {
+    elements.aiStatus.textContent = state.ai.status || getAiProviderNote(provider);
+    elements.aiStatus.className = `target-status-card ${state.ai.statusType || ""}`;
+  }
+  if (elements.aiSubtitle) {
+    elements.aiSubtitle.textContent = state.ai.isLoading
+      ? `${providerLabel} חושב כרגע...`
+      : state.ai.editMode
+        ? `בחר ספק ומודל. ה-${providerLabel} יכול לקרוא את הנתונים שלך וגם לערוך את האתר כשצריך.`
+        : `בחר ספק ומודל. כרגע ה-${providerLabel} רק קורא ועונה בלי לבצע שינויים.`;
+  }
+  if (elements.aiChips) {
+    elements.aiChips.innerHTML = "";
+    [
+      `ספק: ${providerLabel}`,
+      `מודל: ${currentModel}`,
+      `הודעות: ${state.ai.messages.length}`,
+      state.ai.editMode ? "עריכה: פעילה" : "עריכה: כבויה",
+      apiKey ? "API: מחובר" : "API: חסר",
+      `תמונות: ${state.ai.generatedImages.length}`,
+    ].forEach((text) => {
+      const chip = document.createElement("span");
+      chip.className = "detail-chip";
+      chip.textContent = text;
+      elements.aiChips.appendChild(chip);
+    });
+  }
+  elements.aiMessages.innerHTML = "";
+  if (!state.ai.messages.length) {
+    const empty = document.createElement("div");
+    empty.className = "history-item";
+    empty.innerHTML = "<strong>עדיין אין הודעות</strong><small>אפשר לשאול על אימונים, תזונה, תוכנית שבועית ועוד.</small>";
+    elements.aiMessages.appendChild(empty);
+  } else {
+    state.ai.messages.forEach((message) => {
+      const item = document.createElement("div");
+      item.className = `ai-message ${message.role === "user" ? "user" : "model"}`;
+      const senderLabel = message.role === "user" ? "אתה" : (AI_PROVIDER_LABELS[message.provider] || providerLabel);
+      const actionNote = message.actionsApplied?.length
+        ? `<small class="ai-message-note">בוצעו ${message.actionsApplied.length} פעולות באתר</small>`
+        : "";
+      item.innerHTML = `
+        <strong>${senderLabel}</strong>
+        <p>${escapeHtml(message.text)}</p>
+        ${actionNote}
+      `;
+      elements.aiMessages.appendChild(item);
+    });
+  }
+  if (elements.sendAiBtn) {
+    elements.sendAiBtn.disabled = Boolean(state.ai.isLoading);
+    elements.sendAiBtn.textContent = state.ai.isLoading ? "שולח..." : "שלח";
+  }
+  renderAiImageGallery();
+}
+
+async function sendAiMessage() {
+  const prompt = elements.aiPrompt?.value.trim();
+  if (!prompt) return;
+  const provider = state.ai.provider || "gemini";
+  const model = getCurrentAiModel();
+  const apiKey = getAiApiKey(provider);
+  if (!apiKey) {
+    state.ai.status = getAiProviderNote(provider);
+    state.ai.statusType = "danger";
+    persist();
+    renderAiChat();
+    return;
+  }
+  state.ai.messages.push({ role: "user", text: prompt, provider });
+  state.ai.isLoading = true;
+  state.ai.status = `שולח הודעה ל-${AI_PROVIDER_LABELS[provider] || "AI"}...`;
+  state.ai.statusType = "";
+  if (elements.aiPrompt) elements.aiPrompt.value = "";
+  persist();
+  renderAiChat();
+  try {
+    const rawReply = await requestAiChatCompletion(provider, model);
+    const parsedReply = parseAiAssistantResponse(rawReply);
+    const appliedActions = state.ai.editMode ? applyAiActions(parsedReply.actions || []) : [];
+    const replyText = formatAiReplyText(parsedReply.message, appliedActions, provider);
+    state.ai.messages.push({
+      role: "model",
+      provider,
+      text: replyText,
+      actionsApplied: appliedActions,
+    });
+    state.ai.status = state.ai.editMode && appliedActions.length
+      ? `התקבלה תשובה מ-${AI_PROVIDER_LABELS[provider] || "AI"} וגם בוצעו ${appliedActions.length} פעולות באתר.`
+      : `התקבלה תשובה מ-${AI_PROVIDER_LABELS[provider] || "AI"}.`;
+    state.ai.statusType = "success";
+  } catch (error) {
+    state.ai.status = formatAiProviderErrorMessage(provider, error.message);
+    state.ai.statusType = "danger";
+  } finally {
+    state.ai.isLoading = false;
+    persist();
+    render();
+  }
+}
+
+function renderAiModelOptions() {
+  if (!elements.aiModel) return;
+  const provider = state.ai.provider || "gemini";
+  const options = AI_CHAT_MODELS[provider] || [];
+  const currentModel = getCurrentAiModel();
+  elements.aiModel.innerHTML = "";
+  options.forEach((model) => {
+    const option = document.createElement("option");
+    option.value = model;
+    option.textContent = model;
+    if (model === currentModel) option.selected = true;
+    elements.aiModel.appendChild(option);
+  });
+  if (elements.aiModel.value !== currentModel && options[0]) {
+    elements.aiModel.value = currentModel;
+  }
+}
+
+function renderAiImageGallery() {
+  if (!elements.aiImageGallery || !elements.aiImageStatus) return;
+  elements.aiImageStatus.textContent = state.ai.imageStatus || "כאן תוכל ליצור תמונות עם Nano Banana ולהוריד אותן.";
+  elements.aiImageStatus.className = `target-status-card ${state.ai.imageStatusType || ""}`;
+  elements.aiImageGallery.innerHTML = "";
+  if (elements.generateAiImageBtn) {
+    elements.generateAiImageBtn.disabled = Boolean(state.ai.isGeneratingImage);
+    elements.generateAiImageBtn.textContent = state.ai.isGeneratingImage ? "יוצר..." : "צור תמונה";
+  }
+  if (!state.ai.generatedImages.length) {
+    const empty = document.createElement("div");
+    empty.className = "history-item";
+    empty.innerHTML = "<strong>עדיין אין תמונות</strong><small>כתוב פרומפט, צור תמונה, ואז תוכל להוריד אותה מכאן.</small>";
+    elements.aiImageGallery.appendChild(empty);
+    return;
+  }
+  state.ai.generatedImages.forEach((image) => {
+    const item = document.createElement("article");
+    item.className = "ai-image-card";
+    item.innerHTML = `
+      <img class="ai-generated-image" src="${escapeAttribute(image.dataUrl)}" alt="${escapeAttribute(image.prompt || "תמונה שנוצרה")}" />
+      <div class="ai-image-card-body">
+        <strong>${escapeHtml(image.model)}</strong>
+        <small>${escapeHtml(image.prompt)}</small>
+        <div class="nutrition-actions ai-image-actions">
+          <a class="primary-btn ai-download-btn" href="${escapeAttribute(image.dataUrl)}" download="${escapeAttribute(image.fileName)}">הורד תמונה</a>
+        </div>
+      </div>
+    `;
+    elements.aiImageGallery.appendChild(item);
+  });
+}
+
+async function generateAiImage() {
+  const prompt = elements.aiImagePrompt?.value.trim();
+  if (!prompt) return;
+  if (!GEMINI_API_KEY) {
+    state.ai.imageStatus = GEMINI_API_NOTE;
+    state.ai.imageStatusType = "danger";
+    persist();
+    renderAiChat();
+    return;
+  }
+  state.ai.isGeneratingImage = true;
+  state.ai.imageStatus = "יוצר תמונה עם Gemini...";
+  state.ai.imageStatusType = "";
+  persist();
+  renderAiChat();
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(state.ai.imageModel || "gemini-2.5-flash-image")}:generateContent`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.error?.message || "Gemini image generation failed");
+    }
+    const generatedImages = extractGeminiImages(data);
+    if (!generatedImages.length) {
+      throw new Error("לא התקבלה תמונה מהמודל.");
+    }
+    const timestamp = Date.now();
+    generatedImages.forEach((image, index) => {
+      state.ai.generatedImages.unshift({
+        id: crypto.randomUUID(),
+        prompt,
+        model: state.ai.imageModel || "gemini-2.5-flash-image",
+        dataUrl: image.dataUrl,
+        fileName: `gemini-image-${timestamp}-${index + 1}.${image.extension}`,
+      });
+    });
+    state.ai.generatedImages = state.ai.generatedImages.slice(0, 12);
+    state.ai.imageStatus = `${generatedImages.length} תמונות נוצרו בהצלחה.`;
+    state.ai.imageStatusType = "success";
+  } catch (error) {
+    state.ai.imageStatus = formatGeminiErrorMessage(error.message, "image");
+    state.ai.imageStatusType = "danger";
+  } finally {
+    state.ai.isGeneratingImage = false;
+    persist();
+    renderAiChat();
+  }
+}
+
+function extractGeminiImages(data) {
+  const parts = data?.candidates?.flatMap((candidate) => candidate?.content?.parts || []) || [];
+  return parts
+    .map((part) => {
+      const inline = part?.inlineData || part?.inline_data;
+      if (!inline?.data) return null;
+      const mimeType = inline.mimeType || inline.mime_type || "image/png";
+      const extension = mimeType.includes("jpeg") || mimeType.includes("jpg") ? "jpg" : "png";
+      return {
+        dataUrl: `data:${mimeType};base64,${inline.data}`,
+        extension,
+      };
+    })
+    .filter(Boolean);
+}
+
+function formatGeminiErrorMessage(message, mode = "text") {
+  const text = String(message || "");
+  const lower = text.toLowerCase();
+  if (lower.includes("quota") || lower.includes("rate limit") || lower.includes("billing")) {
+    if (mode === "image") {
+      return "אין כרגע quota זמין למודל התמונות של Gemini בחשבון הזה. בדרך כלל זה אומר שצריך Billing פעיל או שהמודל הזה לא זמין ב-Free Tier. בדוק ב-AI Studio את ה-Rate Limits וה-Billing.";
+    }
+    return "אין כרגע quota זמין ל-Gemini בחשבון הזה או שנחסם קצב הבקשות. בדוק ב-AI Studio את ה-Rate Limits וה-Billing.";
+  }
+  if (lower.includes("api key") || lower.includes("permission") || lower.includes("unauthorized") || lower.includes("forbidden")) {
+    return "נראה שיש בעיה ב-Gemini API key או בהרשאות שלו. בדוק שהמפתח תקין ושייך לפרויקט פעיל ב-AI Studio.";
+  }
+  if (lower.includes("model")) {
+    return "נראה שהמודל שנבחר לא זמין לחשבון או לא נתמך כרגע. נסה לבחור מודל אחר.";
+  }
+  return `שגיאה: ${text}`;
+}
+
+async function requestAiChatCompletion(provider, model) {
+  const systemPrompt = buildAiSystemPrompt();
+  if (provider === "openai") {
+    return requestOpenAiChat(model, systemPrompt);
+  }
+  if (provider === "anthropic") {
+    return requestAnthropicChat(model, systemPrompt);
+  }
+  return requestGeminiChat(model, systemPrompt);
+}
+
+async function requestGeminiChat(model, systemPrompt) {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": GEMINI_API_KEY,
+    },
+    body: JSON.stringify({
+      system_instruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: state.ai.messages.map((message) => ({
+        role: message.role === "model" ? "model" : "user",
+        parts: [{ text: message.text }],
+      })),
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error?.message || "Gemini API request failed");
+  }
+  return extractGeminiText(data);
+}
+
+async function requestOpenAiChat(model, systemPrompt) {
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model,
+      input: [
+        {
+          role: "system",
+          content: [{ type: "input_text", text: systemPrompt }],
+        },
+        ...state.ai.messages.map((message) => ({
+          role: message.role === "model" ? "assistant" : "user",
+          content: [{ type: "input_text", text: message.text }],
+        })),
+      ],
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error?.message || "OpenAI API request failed");
+  }
+  return extractOpenAiText(data);
+}
+
+async function requestAnthropicChat(model, systemPrompt) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1400,
+      system: systemPrompt,
+      messages: state.ai.messages.map((message) => ({
+        role: message.role === "model" ? "assistant" : "user",
+        content: message.text,
+      })),
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error?.message || "Anthropic API request failed");
+  }
+  return extractAnthropicText(data);
+}
+
+function extractGeminiText(data) {
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return "";
+  return parts.map((part) => part.text || "").filter(Boolean).join("\n\n").trim();
+}
+
+function extractOpenAiText(data) {
+  if (data?.output_text) return String(data.output_text).trim();
+  const parts = data?.output?.flatMap((item) => item?.content || []) || [];
+  return parts.map((part) => part?.text || "").filter(Boolean).join("\n\n").trim();
+}
+
+function extractAnthropicText(data) {
+  const parts = Array.isArray(data?.content) ? data.content : [];
+  return parts.map((part) => part?.text || "").filter(Boolean).join("\n\n").trim();
+}
+
+function parseAiAssistantResponse(rawText) {
+  const text = String(rawText || "").trim();
+  const actionMatch = text.match(/<gymflow_actions>([\s\S]*?)<\/gymflow_actions>/i);
+  let actions = [];
+  if (actionMatch?.[1]) {
+    const cleaned = actionMatch[1].replace(/```json|```/gi, "").trim();
+    try {
+      const parsed = JSON.parse(cleaned);
+      actions = Array.isArray(parsed) ? parsed : [];
+    } catch {}
+  }
+  const message = text
+    .replace(/<gymflow_actions>[\s\S]*?<\/gymflow_actions>/gi, "")
+    .replace(/<reply>|<\/reply>/gi, "")
+    .trim();
+  return { message, actions };
+}
+
+function formatAiReplyText(message, appliedActions, provider) {
+  const cleanMessage = (message || "").trim();
+  if (!appliedActions.length) {
+    return cleanMessage || `התקבלה תשובה מ-${AI_PROVIDER_LABELS[provider] || "AI"}.`;
+  }
+  const actionSummary = appliedActions.map((item) => `• ${item}`).join("\n");
+  if (!cleanMessage) {
+    return `ביצעתי את השינויים שביקשת:\n${actionSummary}`;
+  }
+  return `${cleanMessage}\n\nבוצעו גם השינויים הבאים באתר:\n${actionSummary}`;
+}
+
+function buildAiSystemPrompt() {
+  const currentModel = getCurrentAiModel();
+  return [
+    "אתה עוזר AI בתוך אפליקציית GymFlow בעברית.",
+    "ענה בקצרה, ברור, ובטון תומך.",
+    "מותר לך להסתמך על נתוני האתר שמופיעים בהקשר המצורף.",
+    state.ai.editMode
+      ? "אם המשתמש מבקש לבצע שינוי ממשי באתר, החזר תשובה אנושית קצרה ואחריה בלוק XML בשם <gymflow_actions> עם JSON תקין של מערך פעולות."
+      : "מצב העריכה כבוי. אל תחזיר פעולות עריכה, רק הסבר ותענה.",
+    "אל תמציא נתונים שלא קיימים בהקשר.",
+    "הפעולות הנתמכות הן: update_profile, create_workout, update_workout, add_exercise, update_exercise, add_food_item, update_food_item, set_nutrition_day, set_workout_day.",
+    "בכל פעולה השתמש בשמות בעברית כפי שהם מופיעים באתר כשאפשר.",
+    "אם אין צורך לערוך את האתר, אל תחזיר שום בלוק פעולות.",
+    `המודל הפעיל כרגע הוא ${currentModel}.`,
+    `הקשר האתר:\n${buildAiSiteContext()}`,
+  ].join("\n\n");
+}
+
+function buildAiSiteContext() {
+  const selectedNutrition = ensureNutritionEntry(state.selectedNutritionDate || formatIsoDate(today));
+  const activeWorkout = getActiveWorkout();
+  const workoutLines = state.workouts.map((workout) => {
+    const exercises = workout.exercises
+      .slice(0, 12)
+      .map((exercise) => `${exercise.name || "ללא שם"} (${exercise.weight || "-"} ק"ג, ${exercise.sets || "-"} סטים, ${exercise.reps || "-"})`)
+      .join(", ");
+    return `- ${workout.name || "אימון ללא שם"} | מיקוד: ${workout.focus || "-"} | מטרה: ${workout.goal || "-"} | תרגילים: ${exercises || "אין"}`;
+  }).join("\n");
+  const nutritionItems = (selectedNutrition.items || [])
+    .map((item) => `${item.name || "ללא שם"} (${item.amount || "-"}, ${item.calories || 0} קלוריות, ${item.protein || 0} גרם חלבון)`)
+    .join(", ");
+  return [
+    `תוכנית: ${state.planName || "ללא שם"}`,
+    `פרופיל: משקל ${state.profile.weight || "-"} ק"ג, גובה ${state.profile.height || "-"} ס"מ, גיל ${getAgeFromBirthDate(state.profile.birthDate) || "-"}, יעד קלוריות ${state.profile.dailyCaloriesTarget || "-"}, יעד חלבון ${state.profile.dailyProteinTarget || "-"}`,
+    `אימון פעיל: ${activeWorkout?.name || "אין"}`,
+    `אימונים קיימים:\n${workoutLines || "- אין אימונים"}`,
+    `תזונה לתאריך ${state.selectedNutritionDate || formatIsoDate(today)}: משקל בוקר ${selectedNutrition.morningWeight || "-"}, מזונות: ${nutritionItems || "אין"}, הערות: ${selectedNutrition.notes || "-"}`,
+  ].join("\n");
+}
+
+function applyAiActions(actions) {
+  const summaries = [];
+  actions.forEach((action) => {
+    const summary = applySingleAiAction(action);
+    if (summary) summaries.push(summary);
+  });
+  if (summaries.length) {
+    syncCalculatorsWithProfile();
+  }
+  return summaries;
+}
+
+function applySingleAiAction(action) {
+  if (!action || typeof action !== "object") return "";
+  const type = action.type || "";
+  if (type === "update_profile") {
+    Object.assign(state.profile, pickDefined(action, ["weight", "height", "birthDate", "dailyCaloriesTarget", "dailyProteinTarget"]));
+    return "הפרופיל עודכן";
+  }
+  if (type === "create_workout") {
+    const workout = createWorkout(action.name || "אימון חדש");
+    workout.focus = action.focus || "";
+    workout.goal = action.goal || "";
+    workout.duration = action.duration || "";
+    workout.notes = action.notes || "";
+    state.workouts.push(workout);
+    if (action.setActive !== false) state.activeWorkoutId = workout.id;
+    return `נוצר אימון חדש: ${workout.name}`;
+  }
+  if (type === "update_workout") {
+    const workout = findWorkoutByAction(action);
+    if (!workout) return "";
+    Object.assign(workout, pickDefined(action.patch || action, ["name", "focus", "goal", "duration", "notes"]));
+    if (action.setActive) state.activeWorkoutId = workout.id;
+    return `האימון ${workout.name || "ללא שם"} עודכן`;
+  }
+  if (type === "add_exercise") {
+    const workout = findWorkoutByAction(action) || ensureActiveWorkout();
+    const base = findLibraryExercise(action.exercise?.name || action.name) || {};
+    const exercise = createExercise({
+      ...base,
+      ...(action.exercise || {}),
+    });
+    workout.exercises.push(exercise);
+    state.activeWorkoutId = workout.id;
+    return `נוסף התרגיל ${exercise.name || "חדש"} לאימון ${workout.name || "ללא שם"}`;
+  }
+  if (type === "update_exercise") {
+    const workout = findWorkoutByAction(action) || ensureActiveWorkout();
+    const exercise = findExerciseByAction(workout, action);
+    if (!exercise) return "";
+    Object.assign(exercise, pickDefined(action.patch || action, ["name", "englishName", "group", "equipment", "difficulty", "sets", "reps", "weight", "goalWeight", "rest", "notes", "videoUrl", "imageUrl"]));
+    return `התרגיל ${exercise.name || "ללא שם"} עודכן`;
+  }
+  if (type === "add_food_item") {
+    const dateKey = action.date || state.selectedNutritionDate || formatIsoDate(today);
+    const entry = ensureNutritionEntry(dateKey);
+    entry.items.unshift({
+      id: crypto.randomUUID(),
+      name: action.item?.name || action.name || "",
+      amount: action.item?.amount || action.amount || "",
+      calories: Number(action.item?.calories ?? action.calories ?? 0),
+      protein: Number(action.item?.protein ?? action.protein ?? 0),
+    });
+    state.selectedNutritionDate = dateKey;
+    return `נוסף מזון ליום ${formatHumanDate(dateKey)}`;
+  }
+  if (type === "update_food_item") {
+    const dateKey = action.date || state.selectedNutritionDate || formatIsoDate(today);
+    const entry = ensureNutritionEntry(dateKey);
+    const item = entry.items.find((food) => food.id === action.itemId || (action.itemName && food.name === action.itemName));
+    if (!item) return "";
+    Object.assign(item, pickDefined(action.patch || action, ["name", "amount"]));
+    if ((action.patch || action).calories !== undefined) item.calories = Number((action.patch || action).calories || 0);
+    if ((action.patch || action).protein !== undefined) item.protein = Number((action.patch || action).protein || 0);
+    state.selectedNutritionDate = dateKey;
+    return `פריט אוכל עודכן ליום ${formatHumanDate(dateKey)}`;
+  }
+  if (type === "set_nutrition_day") {
+    const dateKey = action.date || state.selectedNutritionDate || formatIsoDate(today);
+    const entry = ensureNutritionEntry(dateKey);
+    if (action.morningWeight !== undefined) entry.morningWeight = action.morningWeight;
+    if (action.notes !== undefined) entry.notes = action.notes;
+    state.selectedNutritionDate = dateKey;
+    return `פרטי התזונה ליום ${formatHumanDate(dateKey)} עודכנו`;
+  }
+  if (type === "set_workout_day") {
+    const dateKey = action.date || state.selectedWorkoutLogDate || formatIsoDate(today);
+    if (action.rest) {
+      delete state.workoutLog[dateKey];
+      state.selectedWorkoutLogDate = dateKey;
+      return `היום ${formatHumanDate(dateKey)} סומן כמנוחה`;
+    }
+    const workout = findWorkoutByAction(action);
+    if (!workout) return "";
+    state.workoutLog[dateKey] = {
+      workoutId: workout.id,
+      workoutName: workout.name || "אימון ללא שם",
+      exercises: workout.exercises.map((exercise) => exercise.name || "תרגיל ללא שם"),
+      exerciseEntries: buildWorkoutLogExerciseEntries(workout),
+    };
+    state.selectedWorkoutLogDate = dateKey;
+    return `ליום ${formatHumanDate(dateKey)} הוגדר האימון ${workout.name}`;
+  }
+  return "";
+}
+
+function pickDefined(source, fields) {
+  return fields.reduce((acc, field) => {
+    if (source?.[field] !== undefined) {
+      acc[field] = source[field];
+    }
+    return acc;
+  }, {});
+}
+
+function findWorkoutByAction(action) {
+  return state.workouts.find((workout) =>
+    workout.id === action.workoutId
+    || (action.workoutName && workout.name === action.workoutName)
+    || (action.name && workout.name === action.name)
+  ) || null;
+}
+
+function findExerciseByAction(workout, action) {
+  return workout?.exercises?.find((exercise) =>
+    exercise.id === action.exerciseId
+    || (action.exerciseName && exercise.name === action.exerciseName)
+    || (action.name && exercise.name === action.name)
+  ) || null;
+}
+
+function findLibraryExercise(name) {
+  if (!name) return null;
+  return EXERCISE_LIBRARY.find((exercise) => exercise.name === name || exercise.englishName === name) || null;
+}
+
+function getCurrentAiModel() {
+  const provider = state.ai.provider || "gemini";
+  const model = state.ai.models?.[provider];
+  return model || AI_CHAT_MODELS[provider]?.[0] || "gemini-2.5-flash";
+}
+
+function getAiApiKey(provider) {
+  if (provider === "openai") return OPENAI_API_KEY;
+  if (provider === "anthropic") return ANTHROPIC_API_KEY;
+  return GEMINI_API_KEY;
+}
+
+function getAiProviderNote(provider) {
+  if (provider === "openai") return OPENAI_API_NOTE;
+  if (provider === "anthropic") return ANTHROPIC_API_NOTE;
+  return GEMINI_API_NOTE;
+}
+
+function formatAiProviderErrorMessage(provider, message) {
+  if (provider === "gemini") {
+    return formatGeminiErrorMessage(message, "text");
+  }
+  const text = String(message || "");
+  const lower = text.toLowerCase();
+  if (lower.includes("quota") || lower.includes("rate") || lower.includes("billing")) {
+    return `נראה שאין כרגע quota זמין ל-${AI_PROVIDER_LABELS[provider] || "AI"} או שנחסם קצב הבקשות. בדוק חיוב, מגבלות שימוש והרשאות בפרויקט של ה-API.`;
+  }
+  if (lower.includes("api key") || lower.includes("auth") || lower.includes("unauthorized") || lower.includes("forbidden")) {
+    return `נראה שיש בעיה ב-API key של ${AI_PROVIDER_LABELS[provider] || "AI"} או בהרשאות שלו. בדוק שהמפתח נכון ושהוא פעיל.`;
+  }
+  if (lower.includes("model")) {
+    return `נראה שהמודל שנבחר לא זמין כרגע אצל ${AI_PROVIDER_LABELS[provider] || "AI"}. נסה לבחור מודל אחר.`;
+  }
+  return `שגיאה: ${text}`;
 }
 
 function renderCalculators() {
@@ -1879,6 +2564,7 @@ function loadState() {
       selectedWorkoutLogDate: parsed.selectedWorkoutLogDate || formatIsoDate(today),
       currentView: parsed.currentView || "workouts",
       timer: normalizeTimer(parsed.timer),
+      ai: normalizeAi(parsed.ai),
       calculators: normalizeCalculators(parsed.calculators, parsed.profile),
       editingExerciseId: parsed.editingExerciseId || null,
       editingWorkoutDetails: Boolean(parsed.editingWorkoutDetails),
@@ -1914,6 +2600,7 @@ function buildDefaultState() {
     selectedWorkoutLogDate: formatIsoDate(today),
     currentView: "workouts",
     timer: normalizeTimer({}),
+    ai: normalizeAi({}),
     calculators: normalizeCalculators({}, { weight: "", height: "", birthDate: "" }),
     editingExerciseId: null,
     editingWorkoutDetails: false,
@@ -1999,6 +2686,42 @@ function normalizeTimer(timer) {
     remainingSeconds: Number(timer?.remainingSeconds ?? selectedSeconds),
     isRunning: false,
     finished: Boolean(timer?.finished),
+  };
+}
+
+function normalizeAi(ai) {
+  return {
+    provider: ai?.provider || "gemini",
+    models: {
+      gemini: ai?.models?.gemini || ai?.model || "gemini-2.5-flash",
+      openai: ai?.models?.openai || "gpt-5-mini",
+      anthropic: ai?.models?.anthropic || "claude-3-5-haiku-latest",
+    },
+    editMode: ai?.editMode ?? true,
+    imageModel: ai?.imageModel || "gemini-2.5-flash-image",
+    messages: Array.isArray(ai?.messages)
+      ? ai.messages.map((message) => ({
+          role: message.role === "model" ? "model" : "user",
+          text: message.text || "",
+          provider: message.provider || "gemini",
+          actionsApplied: Array.isArray(message.actionsApplied) ? message.actionsApplied.filter(Boolean) : [],
+        }))
+      : [],
+    generatedImages: Array.isArray(ai?.generatedImages)
+      ? ai.generatedImages.map((image) => ({
+          id: image.id || crypto.randomUUID(),
+          prompt: image.prompt || "",
+          model: image.model || "gemini-2.5-flash-image",
+          dataUrl: image.dataUrl || "",
+          fileName: image.fileName || `gemini-image-${Date.now()}.png`,
+        })).filter((image) => image.dataUrl)
+      : [],
+    isLoading: false,
+    status: ai?.status || getAiProviderNote(ai?.provider || "gemini"),
+    statusType: ai?.statusType || (getAiApiKey(ai?.provider || "gemini") ? "" : "danger"),
+    isGeneratingImage: false,
+    imageStatus: ai?.imageStatus || "כאן תוכל ליצור תמונות עם Nano Banana ולהוריד אותן.",
+    imageStatusType: ai?.imageStatusType || "",
   };
 }
 

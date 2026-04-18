@@ -132,6 +132,7 @@ a {
 
 .strength-screen,
 .timer-screen,
+.ai-screen,
 .calculators-screen {
   display: grid;
   gap: 18px;
@@ -156,7 +157,7 @@ a {
 .view-switch {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 10px;
 }
 
@@ -1050,6 +1051,194 @@ a {
   box-shadow: 0 18px 34px rgba(239, 125, 51, 0.24);
 }
 
+.ai-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px);
+  gap: 12px;
+}
+
+.ai-settings-grid-wide {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.ai-toggle-card {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(147, 164, 194, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+}
+
+.ai-toggle-card strong,
+.ai-toggle-card small {
+  display: block;
+}
+
+.ai-toggle-card small {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.ai-toggle-card input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+
+.ai-messages {
+  display: grid;
+  gap: 12px;
+  max-height: 420px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(122, 201, 255, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(147, 164, 194, 0.14);
+}
+
+.ai-message {
+  max-width: min(88%, 760px);
+  padding: 14px 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(147, 164, 194, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.12);
+}
+
+.ai-message.user {
+  justify-self: end;
+  background:
+    linear-gradient(135deg, rgba(239, 125, 51, 0.2), rgba(239, 125, 51, 0.08)),
+    rgba(255, 255, 255, 0.03);
+  border-bottom-left-radius: 10px;
+}
+
+.ai-message.model {
+  justify-self: start;
+  background:
+    linear-gradient(135deg, rgba(122, 201, 255, 0.16), rgba(122, 201, 255, 0.05)),
+    rgba(255, 255, 255, 0.03);
+  border-bottom-right-radius: 10px;
+}
+
+.ai-message strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #d8e2f7;
+}
+
+.ai-message p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.ai-message-note {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(122, 201, 255, 0.12);
+  color: #dce9ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.ai-screen .textarea-input {
+  min-height: 136px;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.ai-screen .nutrition-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.ai-screen .nutrition-actions > button {
+  min-height: 52px;
+}
+
+.ai-screen .target-status-card {
+  margin-bottom: 0;
+}
+
+.ai-image-panel {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(147, 164, 194, 0.14);
+  display: grid;
+  gap: 14px;
+}
+
+.ai-image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.ai-image-card {
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(147, 164, 194, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.12);
+}
+
+.ai-generated-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  background: rgba(8, 17, 31, 0.3);
+}
+
+.ai-image-card-body {
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.ai-image-card-body strong {
+  font-size: 0.95rem;
+}
+
+.ai-image-card-body small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.ai-image-actions {
+  margin-top: 0;
+}
+
+.ai-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .timer-screen .nutrition-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1406,7 +1595,24 @@ a {
   }
 
   .calculator-picker,
-  .calculator-result-grid {
+  .calculator-result-grid,
+  .ai-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-toggle-card {
+    align-items: flex-start;
+  }
+
+  .ai-message {
+    max-width: 100%;
+  }
+
+  .ai-screen .nutrition-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-image-gallery {
     grid-template-columns: 1fr;
   }
 

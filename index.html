@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260418-ai">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -27,6 +27,7 @@
         <button id="showGoalsViewBtn" class="ghost-btn view-switch-btn" type="button">יעדים</button>
         <button id="showStrengthViewBtn" class="ghost-btn view-switch-btn" type="button">חוזק</button>
         <button id="showTimerViewBtn" class="ghost-btn view-switch-btn" type="button">טיימר</button>
+        <button id="showAiViewBtn" class="ghost-btn view-switch-btn" type="button">AI</button>
         <button id="showCalculatorsViewBtn" class="ghost-btn view-switch-btn" type="button">מחשבונים</button>
       </div>
     </div>
@@ -343,6 +344,76 @@
         </div>
       </section>
     </aside>
+    <aside id="aiView" class="nutrition-sidebar hidden">
+      <section class="nutrition-board side-board ai-screen">
+        <div class="panel-heading panel-heading-tight">
+          <div>
+            <p class="eyebrow">AI</p>
+            <h2>מרכז AI</h2>
+            <p id="aiSubtitle" class="section-subtitle">בחר ספק, מודל, ודבר עם ה-AI מתוך האפליקציה.</p>
+          </div>
+          <div id="aiChips" class="detail-chips"></div>
+        </div>
+        <div class="ai-settings-grid ai-settings-grid-wide">
+          <label>
+            <span class="label">ספק AI</span>
+            <select id="aiProvider" class="text-input">
+              <option value="gemini">Gemini</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Claude</option>
+            </select>
+          </label>
+          <label>
+            <span class="label">מודל</span>
+            <select id="aiModel" class="text-input"></select>
+          </label>
+          <label class="ai-toggle-card" for="aiEditMode">
+            <span>
+              <strong>AI יכול לערוך את האתר</strong>
+              <small>כשהמתג פעיל, הצ'אט יכול גם לבצע שינויים אמיתיים באימונים, בתזונה ובפרופיל.</small>
+            </span>
+            <input id="aiEditMode" type="checkbox" checked>
+          </label>
+        </div>
+        <div id="aiStatus" class="target-status-card">צריך להכניס את מפתחות ה-API בתוך app.js לפני שימוש.</div>
+        <div id="aiMessages" class="ai-messages"></div>
+        <label>
+          <span class="label">הודעה</span>
+          <textarea id="aiPrompt" class="textarea-input" rows="4" placeholder="למשל: תוסיף לי אימון רגליים חדש, או תעדכן את יעד החלבון שלי ל-170 גרם"></textarea>
+        </label>
+        <div class="nutrition-actions">
+          <button id="sendAiBtn" class="primary-btn" type="button">שלח</button>
+          <button id="clearAiChatBtn" class="ghost-btn" type="button">נקה צ'אט</button>
+        </div>
+        <section class="ai-image-panel">
+          <div class="panel-heading panel-heading-tight">
+            <div>
+              <h3>Nano Banana</h3>
+              <p class="section-subtitle">יצירת תמונות עם Gemini בלבד, כולל הורדה ישירה לגלריה.</p>
+            </div>
+          </div>
+          <div class="ai-settings-grid">
+            <label>
+              <span class="label">מודל תמונה</span>
+              <select id="geminiImageModel" class="text-input">
+                <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
+                <option value="gemini-3-pro-image-preview">gemini-3-pro-image-preview</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span class="label">פרומפט לתמונה</span>
+            <textarea id="aiImagePrompt" class="textarea-input" rows="4" placeholder="למשל: צור פוסטר כושר יוקרתי עם רקע שחור, דמות מתאמנת, תאורה דרמטית וטקסט GYMFLOW"></textarea>
+          </label>
+          <div class="nutrition-actions ai-image-actions">
+            <button id="generateAiImageBtn" class="primary-btn" type="button">צור תמונה</button>
+            <button id="clearAiImagesBtn" class="ghost-btn" type="button">נקה גלריה</button>
+          </div>
+          <div id="aiImageStatus" class="target-status-card">כאן תוכל ליצור תמונות עם Nano Banana ולהוריד אותן.</div>
+          <div id="aiImageGallery" class="ai-image-gallery"></div>
+        </section>
+      </section>
+    </aside>
     <aside id="calculatorsView" class="nutrition-sidebar hidden">
       <section class="nutrition-board side-board calculators-screen">
         <div class="panel-heading panel-heading-tight">
@@ -592,6 +663,6 @@
       </div>
     </div>
   </div>
-  <script src="app.js"></script>
+  <script src="app.js?v=20260418-ai"></script>
 </body>
 </html>
