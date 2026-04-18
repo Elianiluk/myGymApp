@@ -30,7 +30,8 @@ body {
 }
 
 .top-nav {
-  position: static;
+  position: static !important;
+  top: auto !important;
   z-index: 1;
   padding: 14px 16px 0;
 }
