@@ -1,5 +1,5 @@
 ﻿const STORAGE_KEY = "gymflow-workout-planner";
-const GEMINI_API_KEY = "AIzaSyA0Qk81De_-Sp6Ih9FJD3B-hsCsxT-8eSY";
+const GEMINI_API_KEY = "";
 const GEMINI_API_NOTE = "הדבק את Gemini API key שלך בתחילת app.js בתוך GEMINI_API_KEY";
 const OPENAI_API_KEY = "";
 const ANTHROPIC_API_KEY = "";
